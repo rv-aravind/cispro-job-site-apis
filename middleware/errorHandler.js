@@ -43,3 +43,37 @@ const errorMiddleware = (err, req, res, next) => {
 };
 
 export default errorMiddleware;
+
+
+//new version of code
+// const errorMiddleware = (err, req, res, next) => {
+//   // Default error structure
+//   const statusCode = err.statusCode || 500;
+//   const message = err.message || 'Internal Server Error';
+  
+//   // Additional details for validation errors
+//   let errors;
+//   if (err.name === 'ValidationError') {
+//     statusCode = 400;
+//     errors = Object.values(err.errors).map(e => ({
+//       field: e.path,
+//       message: e.message
+//     }));
+//   }
+
+//   // Log error for debugging
+//   if (process.env.NODE_ENV === 'development') {
+//     console.error('\x1b[31m%s\x1b[0m', `[ERROR] ${statusCode} - ${message}`);
+//     console.error(err.stack);
+//   }
+
+//   // Send error response
+//   res.status(statusCode).json({
+//     success: false,
+//     message,
+//     ...(errors && { errors }),
+//     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+//   });
+// };
+
+// export default errorMiddleware;
