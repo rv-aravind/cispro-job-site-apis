@@ -1,6 +1,7 @@
+import mongoose from "mongoose";
 import jobs from '../model/jobs.model.js';
 import CompanyProfile from '../model/companyProfile.model.js';
-import { BadRequestError, NotFoundError } from '../utils/errors.js';
+import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 
 const jobsController = {};
 
@@ -28,6 +29,8 @@ jobsController.createJobPost = async (req, res, next) => {
       qualification,
       applicationDeadline,
       location,
+      remoteWork,
+      companyProfile, // Added to allow explicit selection if needed
     } = req.body;
 
     // Validate required fields
@@ -41,26 +44,38 @@ jobsController.createJobPost = async (req, res, next) => {
       throw new BadRequestError(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
+    // console.log("Creating job post with data:", req.body);
+    
     // Validate location object
     if (!location.country || !location.city || !location.completeAddress) {
-      throw new BadRequestError('Complete location details are required');
+      throw new BadRequestError('Complete location details are required (country, city, completeAddress)');
+    }
+
+    // Validate specialisms
+    if (!Array.isArray(specialisms) || specialisms.length === 0) {
+      throw new BadRequestError('At least one specialism is required');
     }
 
     // Check if employer has a company profile
-    const companyProfile = await CompanyProfile.findOne({ employer: employerId });
-    if (!companyProfile) {
+    const companyProfileDoc = await CompanyProfile.findOne({ employer: employerId });
+    if (!companyProfileDoc) {
       throw new NotFoundError('Company profile not found. Please create a company profile first.');
+    }
+
+    // Validate companyProfile if provided explicitly
+    if (companyProfile && !mongoose.Types.ObjectId.isValid(companyProfile)) {
+      throw new BadRequestError('Invalid companyProfile ID');
     }
 
     // Create new job post
     const newJobPost = new jobs({
       employer: employerId,
-      companyProfile: companyProfile._id,
+      companyProfile: companyProfile || companyProfileDoc._id, // Use provided ID or default to employer’s profile
       title,
       description,
       contactEmail,
       contactUsername,
-      specialisms: Array.isArray(specialisms) ? specialisms : JSON.parse(specialisms),
+      specialisms,
       jobType,
       offeredSalary,
       careerLevel,
@@ -74,7 +89,8 @@ jobsController.createJobPost = async (req, res, next) => {
         city: location.city,
         completeAddress: location.completeAddress,
       },
-      status: 'Published', // Default to Published; could be Draft if frontend supports saving drafts
+      remoteWork: remoteWork || 'On-site', // Default to On-site
+      status: 'Published', // Default to Published
     });
 
     await newJobPost.save();
@@ -100,17 +116,30 @@ jobsController.createJobPost = async (req, res, next) => {
 jobsController.getJobPosts = async (req, res, next) => {
   try {
     const user = req.user;
+    const loggedInUserId = user.id;
+    const isSuperAdmin = user.role === 'superadmin';
+
+    // Build base query
     let query = {};
 
     // Restrict to employer's own job posts unless superadmin
-    if (user.role !== 'superadmin') {
-      query.employer = user.id;
+    if (!isSuperAdmin) {
+      // query.employer = new mongoose.Types.ObjectId(loggedInUserId);
+      query.employer = loggedInUserId;
     }
+    
+    // console.log("Query for job posts:", query);
 
+    // const jobPosts = await jobs.find(query)
+    //   .populate('companyProfile', 'companyName logo')
+    //    .select('-__v applicantCount')
+    //   .sort({ createdAt: -1 });
+
+    // Query and populate related company profile (only name and logo)
     const jobPosts = await jobs.find(query)
       .populate('companyProfile', 'companyName logo')
-       .select('-__v applicantCount')
-      .sort({ createdAt: -1 });
+      .select('employer companyProfile title location status createdAt applicationDeadline')
+      .sort({ createdAt: -1 });  // Most recent first
 
     return res.status(200).json({
       success: true,
@@ -134,14 +163,15 @@ jobsController.getJobPost = async (req, res, next) => {
 
     const jobPost = await jobs.findById(jobPostId)
       .populate('companyProfile', 'companyName logo')
-      .select('-__v applicantCount'); 
+      // .select('title description contactEmail contactUsername specialisms jobType offeredSalary careerLevel experience gender industry qualification applicationDeadline location remoteWork status companyProfile -__v')
+      .select('-__v -applicantCount'); // fix here
 
     if (!jobPost) {
       throw new NotFoundError('Job post not found');
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id) {
+    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
       throw new ForbiddenError('You do not have permission to access this job post');
     }
 
@@ -188,7 +218,7 @@ jobsController.updateJobPost = async (req, res, next) => {
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id) {
+    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
       throw new ForbiddenError('You do not have permission to update this job post');
     }
 
@@ -237,10 +267,6 @@ jobsController.updateJobPost = async (req, res, next) => {
         country: parsedLocation.country || jobPost.location.country,
         city: parsedLocation.city || jobPost.location.city,
         completeAddress: parsedLocation.completeAddress || jobPost.location.completeAddress,
-        coordinates: {
-          latitude: parsedLocation.coordinates?.latitude ? parseFloat(parsedLocation.coordinates.latitude) : jobPost.location.coordinates.latitude,
-          longitude: parsedLocation.coordinates?.longitude ? parseFloat(parsedLocation.coordinates.longitude) : jobPost.location.coordinates.longitude,
-        },
       };
     }
 
@@ -249,7 +275,7 @@ jobsController.updateJobPost = async (req, res, next) => {
       jobPostId,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).select('-__v');
+    ).select('-__v -applicantCount');
 
     return res.status(200).json({
       success: true,
@@ -278,12 +304,12 @@ jobsController.deleteJobPost = async (req, res, next) => {
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id) {
+    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
       throw new ForbiddenError('You do not have permission to delete this job post');
     }
 
     // Delete job post
-    await JobPost.findByIdAndDelete(jobPostId);
+    await jobs.findByIdAndDelete(jobPostId);
 
     return res.status(200).json({
       success: true,

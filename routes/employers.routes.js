@@ -3,6 +3,7 @@ import employerController from '../controller/employer.controller.js';
 import jobsController from '../controller/jobs.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import companyUpload from '../utils/fileUpload.js';  
+import normalizeBody from '../utils/normalizeBody.js';
 
 const employerRouter = Router();
 
@@ -24,7 +25,7 @@ employerRouter.delete('/company-profile/delete/:id',authenticate,authorize(['emp
 // post job
 
 // Route to create a job post (accessible to employers, admins, and superadmins)
-employerRouter.post('/jobs/create', authenticate, authorize(['employer', 'admin', 'superadmin']), jobsController.createJobPost);
+employerRouter.post('/jobs/create', authenticate, authorize(['employer', 'admin', 'superadmin']), companyUpload, normalizeBody, jobsController.createJobPost);  //we have added companyUpload to handle file uploads for job posts and normalizeBody to handle FormData parsing
 
 // Get all job posts (filtered by employer for non-superadmins)
 employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.getJobPosts);
@@ -33,7 +34,7 @@ employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'admi
 employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.getJobPost);
 
 // Update a job post
-employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admin', 'superadmin']), jobsController.updateJobPost);
+employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admin', 'superadmin']), companyUpload, normalizeBody, jobsController.updateJobPost);
 
 // Delete a job post
 employerRouter.delete('/jobs/delete/:id',authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.deleteJobPost);

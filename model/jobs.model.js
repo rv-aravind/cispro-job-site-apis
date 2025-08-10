@@ -1,3 +1,4 @@
+// model/jobs.model.js
 import mongoose from 'mongoose';
 
 const jobPostSchema = new mongoose.Schema({
@@ -95,10 +96,16 @@ const jobPostSchema = new mongoose.Schema({
       trim: true,
     },
   },
+  remoteWork: {
+    // Added for 2025 trend: remote work options
+    type: String,
+    enum: ['On-site', 'Hybrid', 'Remote'],
+    default: 'On-site',
+  },
   status: {
     type: String,
     enum: ['Draft', 'Published', 'Closed'],
-    default: 'Draft',
+    default: 'Published',
   },
 }, { timestamps: true });
 

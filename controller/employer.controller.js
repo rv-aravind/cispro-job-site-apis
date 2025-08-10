@@ -238,9 +238,9 @@ employerController.updateCompanyProfile = async (req, res, next) => {
     }
 
     // Log for debugging
-    console.log('req.body:', req.body);
-    console.log('req.files:', req.files);
-    console.log('Parsed updateData:', updateData);
+    // console.log('req.body:', req.body);
+    // console.log('req.files:', req.files);
+    // console.log('Parsed updateData:', updateData);
 
     
     const loggedInUserId = typeof user.id === 'object' && user.id.toHexString
