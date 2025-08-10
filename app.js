@@ -1,4 +1,5 @@
 import express, { urlencoded } from 'express';
+import cors from 'cors';
 // import cookieParser from 'cookie-parser';
 import { PORT } from './config/env.js';
 import connectToDatabase from './database/mongodb.js';
@@ -17,9 +18,32 @@ import mongoSanitize from 'express-mongo-sanitize';
 // const express = require('express');
 const app = express();
 
+
+// CORS configuration for frontend and backend communication
+// Allow requests from specific origins
+const allowedOrigins = [
+  'http://localhost:3000',                      // Local frontend
+  'https://cispro-job-site.vercel.app',         // Vercel frontend
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed from this origin'), false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // If you're using tokens or cookies
+}));
+
 // const body = bodyParser.json(urlencoded({ extended: true }));
 
-// Security middleware
+// Security middleware (e.g., XSS protection)
 // app.use(helmet());
 // app.use(mongoSanitize());
 app.use(express.json({ limit: '10kb' }));
@@ -66,6 +90,15 @@ app.use(errorMiddleware);
 
 
 app.get('/', (req,res) => { res.json('Hello World!'); });
+
+
+// 404 Handler
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
+  });
+});
 
 app.listen(PORT, async() => {
   console.log(`Server is running on port http://localhost:${PORT}`);
