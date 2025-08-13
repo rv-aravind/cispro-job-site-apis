@@ -8,7 +8,12 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env.js";
 // Authentication controller object
 const authentication = {};
 
-// User signup function - Registers a new user with transaction support
+/**
+ * Registers a new user (candidate or employer) with transaction support
+ * @param {Object} req - Request object containing name, email, password, and role
+ * @param {Object} res - Response object to send back the result
+ * @param {Function} next - Next middleware function for error handling
+ */
 authentication.signup = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -68,7 +73,12 @@ authentication.signup = async (req, res, next) => {
     }
 };
 
-// User signin function - Authenticates user and returns JWT token
+/**
+ * Authenticates a user and returns a JWT token
+ * @param {Object} req - Request object containing email and password
+ * @param {Object} res - Response object to send back authentication result
+ * @param {Function} next - Next middleware function for error handling
+ */
 authentication.signin = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -116,7 +126,63 @@ authentication.signin = async (req, res, next) => {
     }
 };
 
-// User signout function - Simple response (token invalidation handled client-side)
+/**
+ * Allows an authenticated user to change their password
+ * @param {Object} req - Request object containing currentPassword, newPassword, and confirmPassword
+ * @param {Object} res - Response object to send back the result
+ * @param {Function} next - Next middleware function for error handling
+ */
+authentication.changePassword = async(req, res, next) => {
+    try {
+
+        const userId = req.user.id; // Get user ID from authenticated request
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        //validate required fields
+        if(!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ message: "Current password, new password and confirm password are required" });
+        }
+
+        if(newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "New password and confirm password do not match" });
+        }
+
+        // Find user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+        // Update user's password
+        user.password = hashedNewPassword;
+        await user.save();
+        // Send success response
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+
+        
+    } catch (error) {
+        console.error("Error in authentication.changePassword:", error);
+        next(error);
+    }
+} 
+
+/**
+ * Signs out the user (client-side token invalidation only)
+ * @param {Object} req - Request object (not used)
+ * @param {Object} res - Response object to confirm sign-out
+ */
 authentication.signout = (req, res) => {
     // Note: JWT is stateless; client should remove token locally
     // Future enhancement: Implement server-side token blacklisting if needed

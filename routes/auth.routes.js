@@ -1,7 +1,7 @@
 // auth.routes.js
 import { Router } from 'express';
 import authentication from '../controller/auth.controller.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const authRouter = Router();
 
@@ -10,6 +10,9 @@ authRouter.post('/sign-up', authentication.signup);
 
 // Route for user signin
 authRouter.post('/sign-in', authentication.signin);
+
+// Route for password reset request
+authRouter.put('/reset-password', authenticate, authorize(['admin', 'employer', 'candidate']), authentication.changePassword);
 
 // Route for user signout
 authRouter.post('/sign-out', authenticate, authentication.signout);
