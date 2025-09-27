@@ -9,6 +9,8 @@ import authRouter from './routes/auth.routes.js';
 import adminRouter from './routes/admin.routes.js';
 import errorMiddleware from './middleware/errorHandler.js';
 import employerRouter from './routes/employers.routes.js';
+import candidateRouter from './routes/candidate.routes.js';
+import jobAlertRouter from './routes/jobAlert.routes.js';
 
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -69,6 +71,8 @@ app.use(urlencoded({ extended: true })); // for parsing application/x-www-form-u
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/employer-dashboard', employerRouter);
+app.use('/api/v1/candidate-dashboard', candidateRouter);
+app.use('/api/v1/notification', jobAlertRouter);
 
 
 // Health check

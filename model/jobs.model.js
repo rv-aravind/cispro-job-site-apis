@@ -1,5 +1,7 @@
 // model/jobs.model.js
 import mongoose from 'mongoose';
+import JobAlert from './jobAlert.model.js';
+import { sendJobAlertEmail } from '../utils/mailer.js';
 
 const jobPostSchema = new mongoose.Schema({
   employer: {
@@ -108,6 +110,68 @@ const jobPostSchema = new mongoose.Schema({
     default: 'Published',
   },
 }, { timestamps: true });
+
+
+/**
+ * Mongoose post-save hook for JobPost.
+ * Triggers job alert notifications if a new published job matches any alert criteria.
+ */
+jobPostSchema.post('save', async function (doc) {
+  try {
+    if (doc.status !== 'Published') return;
+
+    // Populate company name
+    const populatedDoc = await mongoose.model('JobPost')
+      .findById(doc._id)
+      .populate('companyProfile', 'companyName');
+
+    const alerts = await JobAlert.find({ isActive: true }).populate('candidate', 'email');
+    console.log('Found job alerts:', alerts);
+    
+    for (const alert of alerts) {
+      if (alert.frequency !== 'Instant') continue;
+
+      const matches = matchJobToAlert(populatedDoc, alert.criteria);
+      if (matches && alert.candidate.email) {
+        await sendJobAlertEmail({
+          recipient: alert.candidate.email,
+          jobTitle: populatedDoc.title,
+          companyName: populatedDoc.companyProfile.companyName,
+          jobId: populatedDoc._id,
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error in jobPost save hook:', err);
+  }
+});
+
+/**
+ * Determines if a job post matches the alert criteria.
+ * @param {Object} job - The job post document
+ * @param {Object} criteria - The alert criteria
+ * @returns {boolean} - True if the job matches the alert criteria
+ */
+function matchJobToAlert(job, criteria) {
+  if (criteria.categories?.length > 0 &&
+      !criteria.categories.some(cat => job.specialisms.includes(cat))) return false;
+
+  if (criteria.location?.city && criteria.location.city !== job.location.city) return false;
+
+  if (criteria.salaryRange && job.offeredSalary !== 'Negotiable') {
+    const jobSalary = parseFloat(job.offeredSalary.replace('$', '')) || 0;
+    if (jobSalary < criteria.salaryRange.min ||
+        (criteria.salaryRange.max && jobSalary > criteria.salaryRange.max)) return false;
+  }
+
+  if (criteria.jobType && criteria.jobType !== job.jobType) return false;
+  if (criteria.experience && criteria.experience !== job.experience) return false;
+
+  if (criteria.keywords?.length > 0 &&
+      !criteria.keywords.some(kw => job.title.includes(kw) || job.description.includes(kw))) return false;
+
+  return true;
+}
 
 const JobPost = mongoose.model('JobPost', jobPostSchema);
 

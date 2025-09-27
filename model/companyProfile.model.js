@@ -5,7 +5,7 @@ const companyProfileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
     required: true,
-    // unique: true   // Uncomment if each employer can have only one profile
+    unique: true   // Uncomment if each employer can have only one profile
   },
   companyName: {
     type: String,
@@ -148,7 +148,7 @@ const companyProfileSchema = new mongoose.Schema({
  });
  
 // Indexes for faster queries
-// companyProfileSchema.index({ employer: 1 }, { unique: true });  // Uncomment if each employer can have only one profile
+companyProfileSchema.index({ employer: 1 }, { unique: true });  // Uncomment if each employer can have only one profile
 companyProfileSchema.index({ companyName: 'text', industry: 'text' });
 companyProfileSchema.index({ 'location.city': 1, 'location.country': 1 });
 
