@@ -31,6 +31,9 @@ candidateRouter.post('/jobs/apply/:jobId', authenticate, authorize(['candidate']
 // Save a job
 candidateRouter.post('/jobs/save/:jobId', authenticate, authorize(['candidate']), candidateController.saveJob);
 
+// get application status
+candidateRouter.get('/applications/:applicationId/status', authenticate, authorize(['candidate']), candidateController.getApplicationStatus);
+
 // Get applied jobs dashboard
 candidateRouter.get('/applied-jobs', authenticate, authorize(['candidate']), candidateController.getAppliedJobs);
 

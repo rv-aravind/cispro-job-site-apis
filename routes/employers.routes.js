@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import employerController from '../controller/employer.controller.js';
+import employerApplicantsController from '../controller/employerApplicants.controller.js';
 import jobsController from '../controller/jobs.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import companyUpload from '../utils/fileUpload.js';  
@@ -38,5 +39,33 @@ employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admi
 
 // Delete a job post
 employerRouter.delete('/jobs/delete/:id',authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.deleteJobPost);
+
+
+
+// Get applicants for a specific job post
+
+// Get all applicants for a specific job with filters
+employerRouter.get('/applicants/:jobId', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getApplicantsByJob);
+
+// Update applicant status (approve/reject)
+employerRouter.put('/applicants/:applicationId/status', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.updateApplicantStatus);
+
+// Delete an application
+employerRouter.delete('/applicants/delete/:applicationId', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.deleteApplicant);
+
+// View applicant details
+employerRouter.get('/applicants/get/:applicationId', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.viewApplicant);
+
+// Bulk update applicant statuses
+employerRouter.put('/applicants/bulk-status', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.bulkUpdateStatus);
+
+// Shortlist an applicant
+employerRouter.put('/applicants/:applicationId/shortlist', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.shortlistApplicant);
+
+// Unshortlist an applicant
+employerRouter.put('/applicants/:applicationId/unshortlist', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.unshortlistApplicant);
+
+// Get shortlisted resumes
+employerRouter.get('/shortlisted-resumes', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getShortlistedResumes);
 
 export default employerRouter;

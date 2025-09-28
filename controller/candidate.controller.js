@@ -340,7 +340,7 @@ candidateController.applyToJob = async (req, res, next) => {
     if (!candidateProfile) {
       throw new BadRequestError('Please create a candidate profile before applying');
     }
-    console.log("Candidate profile found:", candidateProfile);
+    // console.log("Candidate profile found:", candidateProfile);
     
     // Prevent duplicate applications
     const existingApplication = await JobApply.findOne({ jobPost: jobPostId, candidate: candidateId });
@@ -366,6 +366,7 @@ candidateController.applyToJob = async (req, res, next) => {
     const newApplication = new JobApply({
       jobPost: jobPostId,
       candidate: candidateId,
+      candidateProfile: candidateProfile._id,
       resume,
       coverLetter,
       description,
@@ -550,5 +551,29 @@ candidateController.deleteSavedJob = async (req, res, next) => {
   }
 };
 
+
+// candidateController.js
+candidateController.getApplicationStatus = async (req, res, next) => {
+  try {
+    const candidateId = req.user.id;
+    const { applicationId } = req.params;
+
+    const application = await JobApply.findOne({ _id: applicationId, candidate: candidateId })
+      .populate('jobPost', 'title')
+      .select('status shortlisted jobPost');
+    if (!application) {
+      throw new NotFoundError('Application not found');
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: application.status,
+      shortlisted: application.shortlisted,
+      jobTitle: application.jobPost.title,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export default candidateController;

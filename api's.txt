@@ -578,3 +578,329 @@ response:
   "success": true,
   "message": "Resume deleted successfully"
 }
+
+=====================
+
+Applicants List:
+
+{{local}}api/v1/employer-dashboard/applicants/68973adae4a9452631e9fbd2 - GET 
+
+(/applicants/:jobId)
+
+Response: 
+
+{
+    "success": true,
+    "applicants": [
+        {
+            "id": "687b3ab5745d8f29bb6a1496",
+            "name": "Priya Patel",
+            "designation": "Senior Data Analyst",
+            "location": "Mumbai",
+            "expectedSalary": "₹15-20 LPA",
+            "tags": [
+                "Accounting & Finance",
+                "Digital",
+                "Creative Art"
+            ],
+            "avatar": "/default-avatar.jpg",
+            "status": "Pending",
+            "appliedAt": "2025-08-23T15:33:05.646Z",
+            "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+            "applicationId": "68a9df31f6a58ce8451e4739"
+        }
+    ],
+    "pagination": {
+        "currentPage": 1,
+        "totalPages": 1,
+        "total": 1,
+        "limit": 10
+    },
+    "statusCounts": {
+        "Total": 1,
+        "Pending": 1,
+        "Reviewed": 0,
+        "Accepted": 0,
+        "Rejected": 0
+    }
+}
+
+
+Update Applicant Status:
+
+/applicants/:applicationId/status
+{{local}}api/v1/employer-dashboard/applicants/68a9df31f6a58ce8451e4739/status  - PUT 
+
+Payload:
+
+{
+    "status" : "Reviewed"
+}
+
+
+response:
+
+{
+    "success": true,
+    "message": "Applicant status updated to Reviewed",
+    "application": {
+        "_id": "68a9df31f6a58ce8451e4739",
+        "jobPost": {
+            "location": {
+                "country": "India",
+                "city": "Coimbatore",
+                "completeAddress": "NRMlayout,avarankudithoppu"
+            },
+            "_id": "68973adae4a9452631e9fbd2",
+            "employer": "686eb2200d0b5472f9a6c996",
+            "companyProfile": "6894ec6b55908eb75da0745f",
+            "title": "DevOps Engineer",
+            "description": "We need a DevOps engineer with AWS experience.",
+            "contactEmail": "hr@techfirm.com",
+            "contactUsername": "techfirmHR",
+            "specialisms": [
+                "Digital & Creative"
+            ],
+            "jobType": "Part-time",
+            "offeredSalary": "$3500",
+            "careerLevel": "Intermediate",
+            "experience": "1-3 years",
+            "gender": "Male",
+            "industry": "Information Technology",
+            "qualification": "Associate Degree",
+            "applicationDeadline": "2025-08-06T00:00:00.000Z",
+            "applicantCount": 1,
+            "remoteWork": "On-site",
+            "status": "Published",
+            "createdAt": "2025-08-09T12:11:06.245Z",
+            "updatedAt": "2025-08-23T15:33:05.675Z",
+            "__v": 0
+        },
+        "candidate": "687b3ab5745d8f29bb6a1496",
+        "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+        "description": "i am interested to apply the job",
+        "status": "Reviewed",
+        "createdAt": "2025-08-23T15:33:05.646Z",
+        "updatedAt": "2025-09-28T08:29:33.624Z",
+        "__v": 0,
+        "candidateProfile": "68a767a57404167a7a475121"
+    }
+}
+
+
+//get or view single applicant details 
+
+{{local}}api/v1/employer-dashboard/applicants/get/68a9df31f6a58ce8451e4739 - GET 
+
+{{local}}api/v1/employer-dashboard/applicants/get/:applicationId
+
+
+response:
+
+{
+    "success": true,
+    "application": {
+        "_id": "68a9df31f6a58ce8451e4739",
+        "jobPost": {
+            "_id": "68973adae4a9452631e9fbd2",
+            "employer": "686eb2200d0b5472f9a6c996",
+            "title": "DevOps Engineer"
+        },
+        "candidate": {
+            "_id": "687b3ab5745d8f29bb6a1496",
+            "name": "rv",
+            "email": "test@gmail.com"
+        },
+        "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+        "description": "i am interested to apply the job",
+        "status": "Reviewed",
+        "createdAt": "2025-08-23T15:33:05.646Z",
+        "updatedAt": "2025-09-28T08:29:33.624Z",
+        "candidateProfile": {
+            "location": {
+                "country": "India",
+                "city": "Mumbai",
+                "completeAddress": "789, Marine Drive, Mumbai, Maharashtra 400001, India"
+            },
+            "_id": "68a767a57404167a7a475121",
+            "fullName": "Rv Kumar",
+            "jobTitle": "Senior Data Analyst",
+            "phone": "+918765432109",
+            "expectedSalary": "₹15-20 LPA",
+            "categories": [
+                "Accounting & Finance",
+                "Digital",
+                "Creative Art"
+            ],
+            "profilePhoto": null,
+            "resume": null
+        }
+    }
+}
+
+
+//delete applicant 
+
+/applicants/delete/:applicationId - DELETE 
+
+//Shortlist the application 
+
+{{local}}api/v1/employer-dashboard/applicants/68a9df31f6a58ce8451e4739/shortlist - PUT 
+
+Response :
+
+{
+    "success": true,
+    "message": "Applicant shortlisted successfully",
+    "application": {
+        "_id": "68a9df31f6a58ce8451e4739",
+        "jobPost": {
+            "location": {
+                "country": "India",
+                "city": "Coimbatore",
+                "completeAddress": "NRMlayout,avarankudithoppu"
+            },
+            "_id": "68973adae4a9452631e9fbd2",
+            "employer": "686eb2200d0b5472f9a6c996",
+            "companyProfile": "6894ec6b55908eb75da0745f",
+            "title": "DevOps Engineer",
+            "description": "We need a DevOps engineer with AWS experience.",
+            "contactEmail": "hr@techfirm.com",
+            "contactUsername": "techfirmHR",
+            "specialisms": [
+                "Digital & Creative"
+            ],
+            "jobType": "Part-time",
+            "offeredSalary": "$3500",
+            "careerLevel": "Intermediate",
+            "experience": "1-3 years",
+            "gender": "Male",
+            "industry": "Information Technology",
+            "qualification": "Associate Degree",
+            "applicationDeadline": "2025-08-06T00:00:00.000Z",
+            "applicantCount": 4,
+            "remoteWork": "On-site",
+            "status": "Published",
+            "createdAt": "2025-08-09T12:11:06.245Z",
+            "updatedAt": "2025-09-28T14:38:50.818Z",
+            "__v": 0
+        },
+        "candidate": {
+            "_id": "687b3ab5745d8f29bb6a1496",
+            "email": "test@gmail.com"
+        },
+        "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+        "description": "i am interested to apply the job",
+        "status": "Reviewed",
+        "createdAt": "2025-08-23T15:33:05.646Z",
+        "updatedAt": "2025-09-28T14:38:50.787Z",
+        "__v": 0,
+        "candidateProfile": "68a767a57404167a7a475121",
+        "shortlisted": true
+    }
+}
+
+
+//Unshorlist the resume 
+
+{{local}}api/v1/employer-dashboard/applicants/68a9df31f6a58ce8451e4739/unshortlist  -PUT 
+
+put('/applicants/:applicationId/unshortlist
+
+Response :
+
+{
+    "success": true,
+    "message": "Applicant removed from shortlist",
+    "application": {
+        "_id": "68a9df31f6a58ce8451e4739",
+        "jobPost": {
+            "location": {
+                "country": "India",
+                "city": "Coimbatore",
+                "completeAddress": "NRMlayout,avarankudithoppu"
+            },
+            "_id": "68973adae4a9452631e9fbd2",
+            "employer": "686eb2200d0b5472f9a6c996",
+            "companyProfile": "6894ec6b55908eb75da0745f",
+            "title": "DevOps Engineer",
+            "description": "We need a DevOps engineer with AWS experience.",
+            "contactEmail": "hr@techfirm.com",
+            "contactUsername": "techfirmHR",
+            "specialisms": [
+                "Digital & Creative"
+            ],
+            "jobType": "Part-time",
+            "offeredSalary": "$3500",
+            "careerLevel": "Intermediate",
+            "experience": "1-3 years",
+            "gender": "Male",
+            "industry": "Information Technology",
+            "qualification": "Associate Degree",
+            "applicationDeadline": "2025-08-06T00:00:00.000Z",
+            "applicantCount": 5,
+            "remoteWork": "On-site",
+            "status": "Published",
+            "createdAt": "2025-08-09T12:11:06.245Z",
+            "updatedAt": "2025-09-28T14:39:26.884Z",
+            "__v": 0
+        },
+        "candidate": "687b3ab5745d8f29bb6a1496",
+        "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+        "description": "i am interested to apply the job",
+        "status": "Reviewed",
+        "createdAt": "2025-08-23T15:33:05.646Z",
+        "updatedAt": "2025-09-28T14:40:57.194Z",
+        "__v": 0,
+        "candidateProfile": "68a767a57404167a7a475121",
+        "shortlisted": false
+    }
+}
+
+//Get shortlisted Resume 
+
+{{local}}api/v1/employer-dashboard/shortlisted-resumes?jobId=68973adae4a9452631e9fbd2 - GET
+
+/shortlisted-resumes
+
+Response :
+
+{
+    "success": true,
+    "applicants": [
+        {
+            "id": "687b3ab5745d8f29bb6a1496",
+            "name": "Rv Kumar",
+            "designation": "Senior Data Analyst",
+            "location": "Mumbai",
+            "hourlyRate": "₹15-20 LPA",
+            "tags": [
+                "Accounting & Finance",
+                "Digital",
+                "Creative Art"
+            ],
+            "avatar": "/default-avatar.jpg",
+            "status": "Reviewed",
+            "shortlisted": true,
+            "appliedAt": "2025-08-23T15:33:05.646Z",
+            "resume": "/uploads/candidate/be6756d9-d6e7-4bb1-9d8b-d7576b220001.docx",
+            "applicationId": "68a9df31f6a58ce8451e4739",
+            "jobTitle": "DevOps Engineer"
+        }
+    ],
+    "pagination": {
+        "currentPage": 1,
+        "totalPages": 1,
+        "total": 1,
+        "limit": 10
+    },
+    "statusCounts": {
+        "Total": 1,
+        "Pending": 0,
+        "Reviewed": 0,
+        "Accepted": 0,
+        "Rejected": 0
+    }
+}
+
+

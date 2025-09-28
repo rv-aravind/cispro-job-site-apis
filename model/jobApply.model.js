@@ -12,6 +12,11 @@ const jobApplicationSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  candidateProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CandidateProfile',
+    required: true,
+  },
   resume: {
     type: String,
     trim: true,
@@ -29,6 +34,10 @@ const jobApplicationSchema = new mongoose.Schema({
     type: String,
     enum: ['Pending', 'Reviewed', 'Accepted', 'Rejected'],
     default: 'Pending',
+  },
+  shortlisted: {
+    type: Boolean,
+    default: false, // Indicates if the employer has shortlisted this application
   },
 }, { timestamps: true });
 
