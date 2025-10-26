@@ -337,6 +337,7 @@ employerApplicantsController.getAllApplicants = async (req, res, next) => {
       tags: app.candidateProfile?.categories || [],
       avatar: app.candidateProfile?.profilePhoto || app.candidate.profilePhoto || '/default-avatar.jpg',
       status: app.status,
+      shortlisted: app.shortlisted || false,
       appliedAt: app.createdAt,
       resume: app.resume,
       applicationId: app._id,
