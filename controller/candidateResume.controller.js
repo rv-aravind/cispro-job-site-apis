@@ -78,7 +78,7 @@ candidateResumeController.createResume = async (req, res, next) => {
             skills: parsedSkills,
             portfolio,
             preferences: parsedPreferences,
-            isPrimary: parsedisPrimary?.isPrimary || false,
+            isPrimary: parsedIsPrimary || false,
         });
 
         await newResume.save();

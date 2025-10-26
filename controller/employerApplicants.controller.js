@@ -19,75 +19,146 @@ employerApplicantsController.getApplicantsByJob = async (req, res, next) => {
     const jobId = req.params.jobId;
     const { status, dateRange, page = 1, limit = 10, search } = req.query;
 
-    // Validate job ownership
+    //  Validate job ownership
     const jobPost = await JobPost.findById(jobId);
     if (!jobPost || jobPost.employer.toString() !== employerId.toString()) {
-      throw new ForbiddenError('You do not have permission to view applicants for this job');
+      throw new ForbiddenError("You do not have permission to view applicants for this job");
     }
 
-    // Build query
-    let query = { jobPost: jobId };
-    if (status && status !== 'All') {
-      query.status = status; // 'Pending', 'Reviewed', 'Accepted', 'Rejected'
+    //  Build initial match query
+    const matchQuery = { jobPost: new mongoose.Types.ObjectId(jobId) };
+    
+    // Filter by status if provided
+    if (status && status !== "All") {
+      matchQuery.status = status;
     }
-    // Date range filter (e.g., "Last 12 Months")
-    if (dateRange && dateRange !== 'All') {
-      const months = { 'Last 12 Months': 12, 'Last 16 Months': 16, 'Last 24 Months': 24, 'Last 5 year': 60 };
+
+    // Filter by date range (e.g. "Last 12 Months", "Last 5 year")
+    if (dateRange && dateRange !== "All") {
+      const months = {
+        "Last 12 Months": 12,
+        "Last 16 Months": 16,
+        "Last 24 Months": 24,
+        "Last 5 year": 60,
+      };
       const cutoffDate = new Date();
       cutoffDate.setMonth(cutoffDate.getMonth() - (months[dateRange] || 12));
-      query.createdAt = { $gte: cutoffDate };
+      matchQuery.createdAt = { $gte: cutoffDate };
     }
 
-    // Search by candidate name or email
+    // Build aggregation pipeline
+    const pipeline = [
+      // Match applications for this job
+      { $match: matchQuery },
+
+      // Join candidate basic info (users collection)
+      {
+        $lookup: {
+          from: "users",
+          localField: "candidate",
+          foreignField: "_id",
+          as: "candidate",
+        },
+      },
+      { $unwind: { path: "$candidate", preserveNullAndEmptyArrays: true } },
+
+      // Join candidate profile details (candidateprofiles collection)
+      {
+        $lookup: {
+          from: "candidateprofiles",
+          localField: "candidateProfile",
+          foreignField: "_id",
+          as: "candidateProfile",
+        },
+      },
+      { $unwind: { path: "$candidateProfile", preserveNullAndEmptyArrays: true } },
+
+      // Join job post info (jobposts collection)
+      {
+        $lookup: {
+          from: "jobposts",
+          localField: "jobPost",
+          foreignField: "_id",
+          as: "jobPost",
+        },
+      },
+      { $unwind: { path: "$jobPost", preserveNullAndEmptyArrays: true } },
+    ];
+
+    // Apply text search across joined fields
     if (search) {
-      query.$or = [
-        { 'candidate.name': { $regex: search, $options: 'i' } },
-        { 'candidate.email': { $regex: search, $options: 'i' } },
-        { 'candidateProfile.fullName': { $regex: search, $options: 'i' } },
-        { 'candidateProfile.email': { $regex: search, $options: 'i' } },
-      ];
+      const regex = new RegExp(search, "i");
+      pipeline.push({
+        $match: {
+          $or: [
+            { "candidate.name": regex },
+            { "candidate.email": regex },
+            { "candidateProfile.fullName": regex },
+            { "candidateProfile.email": regex },
+            { "candidateProfile.jobTitle": regex },
+          ],
+        },
+      });
     }
 
-    // Count total applicants for pagination
-    const total = await Application.countDocuments(query);
+    //  Sorting + Pagination + Counting
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          // Paginated result set
+          data: [
+            { $skip: (parseInt(page) - 1) * parseInt(limit) },
+            { $limit: parseInt(limit) },
+          ],
 
-    // Fetch applicants with population
-    const applicants = await Application.find(query)
-      .populate('candidate', 'name email phone profilePhoto')
-      .populate('candidateProfile', 'fullName jobTitle phone location profilePhoto resume expectedSalary categories')
-      .populate('jobPost', 'title companyProfile')
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
+          // Count total documents
+          totalCount: [{ $count: "count" }],
 
-    // Get status counts for tabs
-    const statusCounts = await Application.aggregate([
-      { $match: { jobPost: new mongoose.Types.ObjectId(jobId) } },
-      { $group: { _id: '$status', count: { $sum: 1 } } },
-    ]);
+          // Group by status for tab counts
+          statusCounts: [
+            { $group: { _id: "$status", count: { $sum: 1 } } },
+          ],
+        },
+      }
+    );
+
+    // Execute aggregation
+    const [result] = await Application.aggregate(pipeline);
+    // console.log("testty", result);
+
+    const applicants = result?.data || [];
+    const total = result?.totalCount?.[0]?.count || 0;
+    const statusCounts = result?.statusCounts || [];
+
+    // Prepare counts for UI tabs
     const counts = {
       Total: total,
-      Pending: statusCounts.find(s => s._id === 'Pending')?.count || 0,
-      Reviewed: statusCounts.find(s => s._id === 'Reviewed')?.count || 0,
-      Accepted: statusCounts.find(s => s._id === 'Accepted')?.count || 0,
-      Rejected: statusCounts.find(s => s._id === 'Rejected')?.count || 0,
+      Pending: statusCounts.find((s) => s._id === "Pending")?.count || 0,
+      Reviewed: statusCounts.find((s) => s._id === "Reviewed")?.count || 0,
+      Accepted: statusCounts.find((s) => s._id === "Accepted")?.count || 0,
+      Rejected: statusCounts.find((s) => s._id === "Rejected")?.count || 0,
     };
 
-    // Format applicants for frontend
-    const formattedApplicants = applicants.map(app => ({
-      id: app.candidate._id,
-      name: app.candidateProfile?.fullName || app.candidate.name,
-      designation: app.candidateProfile?.jobTitle || 'N/A',
-      location: app.candidateProfile?.location?.city || 'N/A',
-      expectedSalary: app.candidateProfile?.expectedSalary || 'N/A',
+    //  Format applicants for frontend
+    const formattedApplicants = applicants.map((app) => ({
+      id: app.candidate?._id,
+      name: app.candidateProfile?.fullName || app.candidate?.name || "N/A",
+      designation: app.candidateProfile?.jobTitle || "N/A",
+      location: app.candidateProfile?.location?.city || "N/A",
+      expectedSalary: app.candidateProfile?.expectedSalary || "N/A",
       tags: app.candidateProfile?.categories || [],
-      avatar: app.candidateProfile?.profilePhoto || app.candidate.profilePhoto || '/default-avatar.jpg',
+      avatar:
+        app.candidateProfile?.profilePhoto ||
+        app.candidate?.profilePhoto ||
+        "/default-avatar.jpg",
       status: app.status,
       appliedAt: app.createdAt,
       resume: app.resume,
       applicationId: app._id,
     }));
 
+    // Send response
     return res.status(200).json({
       success: true,
       applicants: formattedApplicants,
@@ -103,6 +174,191 @@ employerApplicantsController.getApplicantsByJob = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Get all applicants across all jobs by the employer with filters.
+ * @route GET /api/employer/applicants
+ * @access Private (Employer, Admin, Superadmin)
+ */
+employerApplicantsController.getAllApplicants = async (req, res, next) => {
+  try {
+    const employerId = req.user.id;
+    const { status, dateRange, page = 1, limit = 10, search } = req.query;
+
+    // Fetch all job posts by the employer
+    const employerJobs = await JobPost.find({ employer: employerId }).select('_id');
+    if (!employerJobs.length) {
+      return res.status(200).json({
+        success: true,
+        applicants: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          total: 0,
+          limit: parseInt(limit),
+        },
+        statusCounts: {
+          Total: 0,
+          Pending: 0,
+          Reviewed: 0,
+          Accepted: 0,
+          Rejected: 0,
+        },
+      });
+    }    
+
+     // Build base query
+    const matchQuery = { jobPost: { $in: employerJobs.map(j => j._id) } };
+
+    if (status && status !== 'All') matchQuery.status = status;
+
+    if (dateRange && dateRange !== 'All') {
+      const months = {
+        'Last 12 Months': 12,
+        'Last 16 Months': 16,
+        'Last 24 Months': 24,
+        'Last 5 year': 60,
+      };
+      const cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - (months[dateRange] || 12));
+      matchQuery.createdAt = { $gte: cutoffDate };
+    }
+
+   // Build aggregation pipeline for fetching applicants with joined data
+  const pipeline = [
+    // Match applications that belong to jobs posted by this employer
+    { $match: matchQuery },
+
+    // Join the `users` collection to fetch candidate basic info
+    // (Mongoose population equivalent)
+    {
+      $lookup: {
+        from: 'users',              // Collection name in MongoDB
+        localField: 'candidate',    // Field in Application schema
+        foreignField: '_id',        // Field in User schema
+        as: 'candidate',            // New array field to store joined data
+      },
+    },
+    // `$lookup` always returns an array — even if only one match.
+    // `$unwind` converts that array into a single object so we can access its fields directly.
+    { $unwind: { path: '$candidate', preserveNullAndEmptyArrays: true } },
+
+    //  Join the `candidateprofiles` collection to include detailed profile info
+    {
+      $lookup: {
+        from: 'candidateprofiles',
+        localField: 'candidateProfile',
+        foreignField: '_id',
+        as: 'candidateProfile',
+      },
+    },
+    // Flatten `candidateProfile` array for easier access
+    { $unwind: { path: '$candidateProfile', preserveNullAndEmptyArrays: true } },
+
+    //  Join the `jobposts` collection to attach job title and metadata
+    {
+      $lookup: {
+        from: 'jobposts',
+        localField: 'jobPost',
+        foreignField: '_id',
+        as: 'jobPost',
+      },
+    },
+    // Again, flatten jobPost since `$lookup` returns an array
+    { $unwind: { path: '$jobPost', preserveNullAndEmptyArrays: true } },
+  ];
+
+  //  Apply text search across joined fields
+  // Using `$match` with `$or` allows searching multiple fields simultaneously
+  if (search) {
+    const regex = new RegExp(search, 'i'); // case-insensitive match
+    pipeline.push({
+      $match: {
+        $or: [
+          { 'candidate.name': regex },
+          { 'candidate.email': regex },
+          { 'candidateProfile.fullName': regex },
+          { 'candidateProfile.email': regex },
+          { 'candidateProfile.jobTitle': regex },
+        ],
+      },
+    });
+  }
+
+  //  Sort and paginate results using `$facet`
+  pipeline.push(
+    // Sort by most recent applications first
+    { $sort: { createdAt: -1 } },
+
+    // `$facet` allows us to run multiple sub-pipelines in parallel:
+    // one for paginated data, one for total count, and one for status counts.
+    {
+      $facet: {
+        // Paginated data (skip and limit)
+        data: [
+          { $skip: (parseInt(page) - 1) * parseInt(limit) },
+          { $limit: parseInt(limit) },
+        ],
+
+        // Total record count for pagination
+        totalCount: [{ $count: 'count' }],
+
+        // Group applications by status to build "Pending / Accepted / Rejected" counts
+        statusCounts: [
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ],
+      },
+    }
+  );
+
+    // Execute aggregation
+    const result = await Application.aggregate(pipeline);
+
+    const applicants = result[0]?.data || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
+    const statusCountsAgg = result[0]?.statusCounts || [];
+
+    const statusCounts = {
+      Total: total,
+      Pending: statusCountsAgg.find(s => s._id === 'Pending')?.count || 0,
+      Reviewed: statusCountsAgg.find(s => s._id === 'Reviewed')?.count || 0,
+      Accepted: statusCountsAgg.find(s => s._id === 'Accepted')?.count || 0,
+      Rejected: statusCountsAgg.find(s => s._id === 'Rejected')?.count || 0,
+    };
+
+
+    // Format applicants for frontend
+    const formattedApplicants = applicants.map(app => ({
+      id: app.candidate._id,
+      name: app.candidateProfile?.fullName || app.candidate.name,
+      designation: app.candidateProfile?.jobTitle || 'N/A',
+      location: app.candidateProfile?.location?.city || 'N/A',
+      expectedSalary: app.candidateProfile?.expectedSalary || 'N/A',
+      tags: app.candidateProfile?.categories || [],
+      avatar: app.candidateProfile?.profilePhoto || app.candidate.profilePhoto || '/default-avatar.jpg',
+      status: app.status,
+      appliedAt: app.createdAt,
+      resume: app.resume,
+      applicationId: app._id,
+      jobTitle: app.jobPost?.title || 'N/A',
+    }));
+
+    return res.status(200).json({
+      success: true,
+      applicants: formattedApplicants,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        total,
+        limit: parseInt(limit),
+      },
+      statusCounts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 /**
  * Update applicant status (approve/reject).

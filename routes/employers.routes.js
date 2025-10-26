@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import employerController from '../controller/employer.controller.js';
 import employerApplicantsController from '../controller/employerApplicants.controller.js';
+import resumeAlertController from '../controller/resumeAlert.controller.js';
 import jobsController from '../controller/jobs.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import companyUpload from '../utils/fileUpload.js';  
@@ -47,6 +48,9 @@ employerRouter.delete('/jobs/delete/:id',authenticate, authorize(['employer', 'a
 // Get all applicants for a specific job with filters
 employerRouter.get('/applicants/:jobId', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getApplicantsByJob);
 
+// Get all applicants across all jobs by employer
+employerRouter.get('/applicants', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getAllApplicants);
+
 // Update applicant status (approve/reject)
 employerRouter.put('/applicants/:applicationId/status', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.updateApplicantStatus);
 
@@ -67,5 +71,23 @@ employerRouter.put('/applicants/:applicationId/unshortlist', authenticate, autho
 
 // Get shortlisted resumes
 employerRouter.get('/shortlisted-resumes', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getShortlistedResumes);
+
+
+// resume alert routes
+// Create resume alert
+employerRouter.post('/resume-alerts/create', authenticate, authorize(['employer']), resumeAlertController.createResumeAlert);
+
+// Update resume alert
+employerRouter.put('/resume-alerts/update/:id', authenticate, authorize(['employer']), resumeAlertController.updateResumeAlert);
+
+// Delete resume alert
+employerRouter.delete('/resume-alerts/delete/:id', authenticate, authorize(['employer']), resumeAlertController.deleteResumeAlert);
+
+// List resume alerts
+employerRouter.get('/resume-alerts/get-all', authenticate, authorize(['employer']), resumeAlertController.listResumeAlerts);
+
+// Get matches for specific alert
+employerRouter.get('/resume-alerts/:id/matches', authenticate, authorize(['employer', 'admin', 'superadmin']), resumeAlertController.getAlertMatches);
+
 
 export default employerRouter;

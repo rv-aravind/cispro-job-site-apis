@@ -17,4 +17,18 @@ authRouter.put('/reset-password', authenticate, authorize(['admin', 'employer', 
 // Route for user signout
 authRouter.post('/sign-out', authenticate, authentication.signout);
 
+// Request password reset (send token)
+authRouter.post('/forgot-password', authentication.forgotPassword);
+
+// Reset password using token (no authentication)
+authRouter.post('/reset-password/:token', authentication.resetPasswordWithToken);
+
+// optional: Admin or superadmin can reset any user's password
+authRouter.put(
+  '/admin/reset-user-password/:id',
+  authentication.adminResetUserPassword
+);
+
+
+
 export default authRouter;

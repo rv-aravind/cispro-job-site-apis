@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../model/user.model.js";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env.js";
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 // Authentication controller object
 const authentication = {};
@@ -177,6 +179,111 @@ authentication.changePassword = async(req, res, next) => {
         next(error);
     }
 } 
+
+
+/**
+ * Allows admin or superadmin to change their password
+ * @param {Object} req - Request object containing currentPassword, newPassword, and confirmPassword
+ * @param {Object} res - Response object to send back the result
+ * @param {Function} next - Next middleware function for error handling
+ */
+authentication.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save token and expiry in user doc
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 mins
+    await user.save();
+
+    // Send reset email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    await sendPasswordResetEmail({
+      recipient: user.email,
+      name: user.name || user.email,
+      resetUrl
+    });
+
+    res.status(200).json({ success: true, message: 'Password reset link sent to your email' });
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    next(error);
+  }
+};
+
+
+
+authentication.resetPasswordWithToken = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { newPassword, confirmPassword } = req.body;
+
+    if (!newPassword || !confirmPassword)
+      return res.status(400).json({ message: 'New password and confirm password are required' });
+
+    if (newPassword !== confirmPassword)
+      return res.status(400).json({ message: 'Passwords do not match' });
+
+    // Hash token for comparison
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user)
+      return res.status(400).json({ message: 'Reset token is invalid or expired' });
+
+    // Set new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Error in resetPasswordWithToken:', error);
+    next(error);
+  }
+};
+
+
+authentication.adminResetUserPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) return res.status(400).json({ message: 'New password is required' });
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Password reset successfully for user ${user.email}`
+    });
+  } catch (error) {
+    console.error('Error in adminResetUserPassword:', error);
+    next(error);
+  }
+};
+
 
 /**
  * Signs out the user (client-side token invalidation only)

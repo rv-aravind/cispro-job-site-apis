@@ -1,4 +1,7 @@
 import mongoose from 'mongoose';
+import ResumeAlert from '../model/resumeAlert.model.js';
+import { sendResumeAlertEmail } from '../utils/mailer.js';
+import { matchResumeToAlert } from '../utils/resumeMatching.js';
 
 const candidateProfileSchema = new mongoose.Schema({
   candidate: {
@@ -54,6 +57,7 @@ const candidateProfileSchema = new mongoose.Schema({
     max: 65,
     required: [true, 'Age is required'],
   },
+  gender: { type: String, enum: ['Male', 'Female', 'Other', 'No Preference'], default: 'No Preference' },
   educationLevels: {
     type: [String],
     required: [true, 'Education levels are required'],
@@ -90,6 +94,11 @@ const candidateProfileSchema = new mongoose.Schema({
     country: { type: String, default: 'India', trim: true },
     city: { type: String, required: [true, 'City is required'], trim: true },
     completeAddress: { type: String, required: [true, 'Complete address is required'], trim: true },
+    remoteWork: {
+      type: String,
+      enum: ['On-site', 'Hybrid', 'Remote', 'Any'],
+      default: 'Any'
+    },
   },
   profilePhoto: {
     type: String,
@@ -101,6 +110,34 @@ const candidateProfileSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
+
+// Hook for new/updated candidate profile to trigger resume alerts
+candidateProfileSchema.post('save', async function (doc) {
+  try {
+    const alerts = await ResumeAlert.find({ isActive: true }).populate('employer', 'email');
+
+    for (const alert of alerts) {
+      if (alert.frequency !== 'Instant') continue;
+
+      const { matched, matchScore } = matchResumeToAlert(doc, alert.criteria);
+
+      console.log(`[ResumeAlert] ${alert.title}: match=${matched}, score=${matchScore}`);
+
+      if (matched && alert.employer.email) {
+        await sendResumeAlertEmail({
+          recipient: alert.employer.email,
+          candidateName: doc.fullName,
+          jobTitle: doc.jobTitle,
+          profileId: doc._id,
+          alert,
+          matchScore,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error in CandidateProfile save hook:', error);
+  }
+});
 
 // Define indexes explicitly
 candidateProfileSchema.index({ candidate: 1 }, { unique: true });

@@ -232,7 +232,7 @@ Response:
     }
 }
 
-
+=================================
 //resume builder:
 
 {{local}}api/v1/candidate-dashboard/resumes/create - POST 
@@ -251,6 +251,64 @@ portfolioTitle_portfolio0:Project Presentation
 portfolioDesc_portfolio0:{"visibility":"public","jobTypes":["Full-time","Remote"],"locations":["Chennai","Bangalore"],"salaryExpectation":{"min":50000,"max":100000,"currency":"INR"}}
 isPrimary:true
 description:mine new resume
+
+
+Payload2: 
+
+
+{
+  "title": "Professional Resume",
+  "description": "Full-stack developer with 5+ years experience in React and Node.js",
+  "template": "professional",
+  "personalInfo": {
+    "fullName": "ARAVI",
+    "professionalTitle": "Senior Full Stack Developer",
+    "email": "saravind406@gmail.com",
+    "phone": "+91 9876543210",
+    "location": { "city": "Chennai", "country": "India" },
+    "linkedInUrl": "https://linkedin.com/in/aravindkumar",
+    "githubUrl": "https://github.com/aravindkumar",
+    "summary": "Experienced in building scalable web applications using React, Node, and MongoDB."
+  },
+  "education": [
+    {
+      "institution": "Anna University",
+      "degree": "Bachelor",
+      "fieldOfStudy": "Computer Science",
+      "startDate": "2014-06-01",
+      "endDate": "2018-05-31"
+    }
+  ],
+  "experience": [
+    {
+      "company": "TechNova",
+      "position": "Full Stack Developer",
+      "employmentType": "Full-time",
+      "location": "Chennai",
+      "startDate": "2019-01-01",
+      "endDate": "2023-12-31",
+      "current": false,
+      "description": "Developed scalable MERN apps and REST APIs.",
+      "skills": ["React", "Node.js", "MongoDB", "AWS"]
+    }
+  ],
+  "skills": ["React", "Node.js", "MongoDB", "AWS", "JavaScript"],
+  "awards": [
+    {
+      "title": "Employee of the Year",
+      "issuer": "TechNova",
+      "date": "2021-03-15",
+      "description": "Recognized for leading multiple successful projects."
+    }
+  ],
+  "preferences": {
+    "jobTypes": ["Full-time"],
+    "locations": ["Chennai", "Remote"]
+  },
+  "isPrimary": true,
+  "isActive": true
+}
+
 
 Response:
 
@@ -358,6 +416,63 @@ portfolioDesc_portfolio0:A presentation on my latest project
 isPrimary:1
 description:mine new updated resume
 isActive:0
+
+
+payload2:
+
+{
+  "title": "Professional Resume",
+  "description": "Full-stack developer with 5+ years experience in React and Node.js",
+  "template": "professional",
+  "personalInfo": {
+    "fullName": "ARAVI S",
+    "professionalTitle": "Senior Full Stack Developer",
+    "email": "saravind406@gmail.com",
+    "phone": "+91 9876543210",
+    "location": { "city": "Chennai", "country": "India" },
+    "linkedInUrl": "https://linkedin.com/in/aravindkumar",
+    "githubUrl": "https://github.com/aravindkumar",
+    "summary": "Experienced in building scalable web applications using React, Node, and MongoDB."
+  },
+  "education": [
+    {
+      "institution": "Anna University",
+      "degree": "Bachelor",
+      "fieldOfStudy": "Computer Science",
+      "startDate": "2014-06-01",
+      "endDate": "2018-05-31"
+    }
+  ],
+  "experience": [
+    {
+      "company": "TechNova",
+      "position": "Full Stack Developer",
+      "employmentType": "Full-time",
+      "location": "Chennai",
+      "startDate": "2019-01-01",
+      "endDate": "2023-12-31",
+      "current": false,
+      "description": "Developed scalable MERN apps and REST APIs.",
+      "skills": ["React", "Node.js", "MongoDB", "AWS"]
+    }
+  ],
+  "skills": ["React", "Node.js", "MongoDB", "AWS", "JavaScript"],
+  "awards": [
+    {
+      "title": "Employee of the Year",
+      "issuer": "TechNova",
+      "date": "2021-03-15",
+      "description": "Recognized for leading multiple successful projects."
+    }
+  ],
+  "preferences": {
+    "jobTypes": ["Full-time"],
+    "locations": ["Chennai", "Remote"]
+  },
+  "isPrimary": true,
+  "isActive": true
+}
+
 
 
 Response: 
@@ -904,3 +1019,421 @@ Response :
 }
 
 
+//candidateProfile update
+
+PUT: localhost:5000/api/v1/candidate-dashboard/profile/update/68a767a57404167a7a475121
+
+Payload:
+
+{
+  "fullName": "Aravind Kumar",
+  "jobTitle": "Senior DevOps Engineer",
+  "phone": "+919876543210",
+  "email": "aravind.k@example.com",
+  "website": "https://aravinddevops.in",
+  "currentSalary": "₹10-15 LPA",
+  "expectedSalary": "₹20-30 LPA",
+  "experience": "5-10 years",
+  "age": 32,
+  "educationLevels": ["Bachelor"],
+  "languages": ["English", "Hindi"],
+  "categories": ["Engineering", "DevOps"],
+  "allowInSearch": true,
+  "description": "DevOps professional with 7 years of experience in CI/CD pipelines, AWS, Docker, Kubernetes, and cloud infrastructure automation.",
+  "socialMedia": {
+    "linkedin": "https://linkedin.com/in/aravinddevops",
+    "github": "https://github.com/aravinddevops",
+    "gender": "Male"
+  },
+  "location": {
+    "country": "India",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "completeAddress" : "789, Marine Drive, Bangalore, Karnataka 400001, India"
+  },
+  "preferences": {
+    "remoteReady": true
+  },
+  "skills": ["AWS", "Docker", "Kubernetes", "CI/CD", "Terraform", "Ansible"]
+}
+
+
+
+Response:
+
+{
+    "success": true,
+    "message": "Candidate profile updated successfully",
+    "profile": {
+        "socialMedia": {
+            "linkedin": "https://linkedin.com/in/aravinddevops"
+        },
+        "location": {
+            "country": "India",
+            "city": "Bangalore",
+            "completeAddress": "789, Marine Drive, Bangalore, Karnataka 400001, India"
+        },
+        "_id": "68a767a57404167a7a475121",
+        "candidate": "687b3ab5745d8f29bb6a1496",
+        "fullName": "Aravind Kumar",
+        "jobTitle": "Senior DevOps Engineer",
+        "phone": "+919876543210",
+        "email": "aravind.k@example.com",
+        "website": "https://aravinddevops.in",
+        "currentSalary": "₹10-15 LPA",
+        "expectedSalary": "₹20-30 LPA",
+        "experience": "5-10 years",
+        "age": 32,
+        "educationLevels": [
+            "Bachelor"
+        ],
+        "languages": [
+            "English",
+            "Hindi"
+        ],
+        "categories": [
+            "Engineering",
+            "DevOps"
+        ],
+        "allowInSearch": true,
+        "description": "DevOps professional with 7 years of experience in CI/CD pipelines, AWS, Docker, Kubernetes, and cloud infrastructure automation.",
+        "profilePhoto": null,
+        "resume": null,
+        "isActive": true,
+        "createdAt": "2025-08-21T18:38:29.054Z",
+        "updatedAt": "2025-10-25T14:34:09.593Z",
+        "__v": 1,
+        "gender": "No Preference"
+    }
+}
+
+
+//get resume alerts
+
+GET {{local}}api/v1/employer-dashboard/resume-alerts/get-all
+
+Response:
+
+{
+    "success": true,
+    "alerts": [
+        {
+            "criteria": {
+                "location": {
+                    "country": "India",
+                    "city": "Bangalore"
+                },
+                "salaryRange": {
+                    "min": 1500000,
+                    "max": 3000000
+                },
+                "diversity": {
+                    "ageRange": {
+                        "min": 25,
+                        "max": 45
+                    },
+                    "gender": "No Preference"
+                },
+                "categories": [
+                    "Engineering",
+                    "DevOps"
+                ],
+                "experience": "5-10 years",
+                "educationLevels": [
+                    "Bachelor",
+                    "Master"
+                ],
+                "skills": [
+                    "AWS",
+                    "Docker",
+                    "Kubernetes"
+                ],
+                "remoteWork": "Any",
+                "keywords": [
+                    "CI/CD",
+                    "cloud infrastructure"
+                ]
+            },
+            "stats": {
+                "emailsSent": 1,
+                "totalMatches": 1,
+                "lastMatch": "2025-10-25T14:34:13.162Z"
+            },
+            "_id": "68fcd9a85a9abcb9ffbc07d7",
+            "employer": "68ac9967d0d12b78d128cc96",
+            "title": "Senior DevOps Engineers",
+            "frequency": "Instant",
+            "isActive": true,
+            "matchingCount": 0,
+            "createdAt": "2025-10-25T14:07:36.165Z",
+            "updatedAt": "2025-10-25T14:34:13.165Z"
+        }
+    ]
+}
+
+
+
+//Create resumealerts
+
+POST : {{local}}api/v1/employer-dashboard/resume-alerts/create
+
+Payload:
+
+{
+  "title": "Senior DevOps Engineers",
+  "criteria": {
+    "categories": ["Engineering", "DevOps"],
+    "location": {
+      "country": "India",
+      "city": "Bangalore"
+    },
+    "salaryRange": {
+      "min": 1500000,
+      "max": 3000000
+    },
+    "experience": "5-10 years",
+    "educationLevels": ["Bachelor", "Master"],
+    "skills": ["AWS", "Docker", "Kubernetes"],
+    "diversity": {
+      "gender": "No Preference",
+      "ageRange": {
+        "min": 25,
+        "max": 45
+      }
+    },
+    "remoteWork": "Any",
+    "keywords": ["CI/CD", "cloud infrastructure"]
+  },
+  "frequency": "Instant"
+}
+
+//payload 2
+
+{
+  "title": "Data Science Professionals",
+  "frequency": "Weekly",
+  "criteria": {
+    "categories": ["Data Science", "AI/ML"],
+    "skills": ["Python", "TensorFlow", "Pandas"],
+    "experience": "3-5 years",
+    "educationLevels": ["Master", "Doctorate"],
+    "location": {
+      "country": "India",
+      "city": "Pune"
+    },
+    "diversity": {
+      "gender": "Female",
+      "ageRange": { "min": 25, "max": 40 }
+    },
+    "remoteWork": "Remote",
+    "keywords": ["machine learning", "data analysis"]
+  }
+}
+
+
+
+//response:
+
+{
+    "success": true,
+    "message": "Resume alert created successfully",
+    "alert": {
+        "employer": "68ac9967d0d12b78d128cc96",
+        "criteria": {
+            "categories": [
+                "Frontend",
+                "UI/UX"
+            ],
+            "location": {
+                "country": "India",
+                "city": "Chennai"
+            },
+            "experience": "3-5 years",
+            "educationLevels": [
+                "Bachelor"
+            ],
+            "skills": [
+                "React",
+                "Next.js",
+                "JavaScript",
+                "CSS"
+            ],
+            "diversity": {
+                "gender": "No Preference",
+                "ageRange": {
+                    "min": 22,
+                    "max": 35
+                }
+            },
+            "remoteWork": "Any",
+            "keywords": [
+                "React",
+                "Frontend"
+            ]
+        },
+        "title": "React Frontend Developers",
+        "frequency": "Daily",
+        "isActive": true,
+        "matchingCount": 0,
+        "stats": {
+            "emailsSent": 0,
+            "totalMatches": 0
+        },
+        "_id": "68fdcc1485aa2eae5d81f2f5",
+        "createdAt": "2025-10-26T07:21:56.146Z",
+        "updatedAt": "2025-10-26T07:21:56.146Z",
+        "__v": 0
+    }
+}
+
+
+//update resumealerts:
+
+PUT: {{local}}api/v1/employer-dashboard/resume-alerts/update/68fcd9a85a9abcb9ffbc07d7
+
+Payload:
+
+{
+  "title": "Senior DevOps Engineers",
+  "criteria": {
+    "categories": ["DevOps"],
+    "location": {
+      "country": "India",
+      "city": "Chennai"
+    },
+    "salaryRange": {
+      "min": 1500000,
+      "max": 3000000
+    },
+    "experience": "5-10 years",
+    "educationLevels": ["Bachelor", "Master"],
+    "skills": ["AWS", "Docker", "Kubernetes"],
+    "diversity": {
+      "gender": "No Preference",
+      "ageRange": {
+        "min": 25,
+        "max": 45
+      }
+    },
+    "remoteWork": "Any",
+    "keywords": ["CI/CD", "cloud infrastructure"]
+  },
+  "frequency": "Instant"
+}
+
+
+Response:
+
+{
+    "success": true,
+    "message": "Resume alert updated successfully",
+    "alert": {
+        "criteria": {
+            "categories": [
+                "DevOps"
+            ],
+            "location": {
+                "country": "India",
+                "city": "Chennai"
+            },
+            "salaryRange": {
+                "min": 1500000,
+                "max": 3000000
+            },
+            "experience": "5-10 years",
+            "educationLevels": [
+                "Bachelor",
+                "Master"
+            ],
+            "skills": [
+                "AWS",
+                "Docker",
+                "Kubernetes"
+            ],
+            "diversity": {
+                "gender": "No Preference",
+                "ageRange": {
+                    "min": 25,
+                    "max": 45
+                }
+            },
+            "remoteWork": "Any",
+            "keywords": [
+                "CI/CD",
+                "cloud infrastructure"
+            ]
+        },
+        "stats": {
+            "emailsSent": 1,
+            "totalMatches": 1,
+            "lastMatch": "2025-10-25T14:34:13.162Z"
+        },
+        "_id": "68fcd9a85a9abcb9ffbc07d7",
+        "employer": "68ac9967d0d12b78d128cc96",
+        "title": "Senior DevOps Engineers",
+        "frequency": "Instant",
+        "isActive": true,
+        "matchingCount": 0,
+        "createdAt": "2025-10-25T14:07:36.165Z",
+        "updatedAt": "2025-10-25T15:55:47.075Z",
+        "__v": 0
+    }
+}
+
+
+Get Alert Matches
+
+curl -X GET "http://localhost:5000/api/v1/employer/resume-alerts/68a9df31f6a58ce8451e4739/matches?page=1&limit=10" \
+  -H "Authorization: Bearer <token>"
+
+employerRouter.get('/resume-alerts/:Alertid/matches') = here id is alertid
+
+GET: {{local}}api/v1/employer-dashboard/resume-alerts/68fdcc7f85aa2eae5d81f2fd/matches?page=1&limit=10
+
+success:
+{
+    "success": true,
+    "matches": [
+        {
+            "id": "68a767a57404167a7a475121",
+            "fullName": "Aravind Kumar",
+            "jobTitle": "Senior DevOps Engineer",
+            "location": "Bangalore",
+            "expectedSalary": "₹20-30 LPA",
+            "experience": "5-10 years",
+            "categories": [
+                "Engineering",
+                "DevOps"
+            ],
+            "matchScore": "88.9",
+            "profilePhoto": "/default-avatar.jpg"
+        }
+    ],
+    "pagination": {
+        "currentPage": 1,
+        "totalPages": 1,
+        "total": 1,
+        "limit": 10
+    }
+}
+
+
+Failure:
+
+{
+    "success": false,
+    "message": "No Candidate are available for matching"
+}
+
+
+//delete
+
+DELETE : {{local}}api/v1/employer-dashboard/resume-alerts/delete/68fcd9a85a9abcb9ffbc07d7
+
+
+Response:
+
+{
+    "success": true,
+    "message": "Resume alert deleted successfully"
+}
