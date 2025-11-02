@@ -42,11 +42,11 @@ candidateController.createCandidateProfile = async (req, res, next) => {
     const profileData = req.body;
 
     const { 
-      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
+      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
     } = profileData;
 
     // Validate required fields
-    const requiredFields = ['fullName', 'jobTitle', 'phone', 'email', 'educationLevels', 'languages', 'categories', 'description', 'age', 'location'];
+    const requiredFields = ['fullName', 'jobTitle', 'phone', 'email', 'educationLevels', 'languages', 'categories', 'description', 'age', 'gender', 'location'];
     const missingFields = requiredFields.filter(field => !profileData[field] || (field === 'location' && (!profileData[field].city || !profileData[field].completeAddress)));
     if (missingFields.length > 0) {
       throw new BadRequestError(`Missing or incomplete required fields: ${missingFields.join(', ')}`);
@@ -75,6 +75,7 @@ candidateController.createCandidateProfile = async (req, res, next) => {
       expectedSalary,
       experience,
       age,
+      gender,
       educationLevels: Array.isArray(educationLevels) ? educationLevels : (typeof educationLevels === 'string' ? JSON.parse(educationLevels) : [educationLevels]),
       languages: Array.isArray(languages) ? languages : (typeof languages === 'string' ? JSON.parse(languages) : [languages]),
       categories: Array.isArray(categories) ? categories : (typeof categories === 'string' ? JSON.parse(categories) : [categories]),
@@ -129,7 +130,7 @@ candidateController.updateCandidateProfile = async (req, res, next) => {
     let profileData = req.body;
 
     const { 
-      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
+      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
     } = profileData;
 
     // Find the profile by ID
@@ -172,6 +173,7 @@ candidateController.updateCandidateProfile = async (req, res, next) => {
     profile.expectedSalary = expectedSalary || profile.expectedSalary;
     profile.experience = experience || profile.experience;
     profile.age = age || profile.age;
+    profile.gender = gender || profile.gender;
     // Normalize arrays (support repeated form-data keys or JSON string arrays)
     profile.educationLevels = educationLevels
       ? (Array.isArray(educationLevels)
