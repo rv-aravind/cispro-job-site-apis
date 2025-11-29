@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const resumeAlertSchema = new mongoose.Schema({
   employer: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',
     required: true,
   },
