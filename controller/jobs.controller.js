@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import jobs from '../model/jobs.model.js';
-import CompanyProfile from '../model/companyProfile.model.js';
+import jobs from '../models/jobs.model.js';
+import CompanyProfile from '../models/companyProfile.model.js';
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 
 const jobsController = {};

@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import Application from '../model/jobApply.model.js';
-import JobPost from '../model/jobs.model.js';
-import CandidateProfile from '../model/candidateProfile.model.js';
-import User from '../model/user.model.js';
+import Application from '../models/jobApply.model.js';
+import JobPost from '../models/jobs.model.js';
+import CandidateProfile from '../models/candidateProfile.model.js';
+import User from '../models/user.model.js';
 import { BadRequestError, NotFoundError, ForbiddenError } from '../utils/errors.js';
 
 const employerApplicantsController = {};

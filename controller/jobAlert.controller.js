@@ -1,6 +1,6 @@
-import JobAlert from '../model/jobAlert.model.js';
-import JobPost from '../model/jobs.model.js';
-import CandidateProfile from '../model/candidateProfile.model.js';
+import JobAlert from '../models/jobAlert.model.js';
+import JobPost from '../models/jobs.model.js';
+import CandidateProfile from '../models/candidateProfile.model.js';
 import { BadRequestError, NotFoundError } from '../utils/errors.js';
 import { sendJobAlertEmail } from '../utils/mailer.js';
 import EventEmitter from 'events';

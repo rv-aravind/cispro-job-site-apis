@@ -1,7 +1,7 @@
 // middleware/auth.js
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env.js';
-import User from '../model/user.model.js'; // Import User model to check activity
+import User from '../models/user.model.js'; // Import User model to check activity
 
 // Middleware to authenticate user via JWT
 export const authenticate = async (req, res, next) => {

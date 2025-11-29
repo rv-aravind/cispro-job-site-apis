@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import natural from 'natural';
-import CandidateResume from '../model/candidateResume.model.js';
+import CandidateResume from '../models/candidateResume.model.js';
 import { BadRequestError, NotFoundError, ForbiddenError } from '../utils/errors.js';
 import fs from 'fs';
 import path from 'path';

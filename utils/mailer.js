@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import ResumeAlert from '../model/resumeAlert.model.js';
+import ResumeAlert from '../models/resumeAlert.model.js';
 import { BadRequestError } from './errors.js';
 
 // Configure transporter (use environment variables for security)

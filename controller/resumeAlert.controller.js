@@ -1,5 +1,5 @@
-import ResumeAlert from '../model/resumeAlert.model.js';
-import CandidateProfile from '../model/candidateProfile.model.js';
+import ResumeAlert from '../models/resumeAlert.model.js';
+import CandidateProfile from '../models/candidateProfile.model.js';
 import { BadRequestError, NotFoundError } from '../utils/errors.js';
 import { sendResumeAlertEmail } from '../utils/mailer.js';
 import { matchResumeToAlert } from '../utils/resumeMatching.js';

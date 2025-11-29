@@ -1,5 +1,5 @@
 // controller/admin.controller.js
-import User from '../model/user.model.js';
+import User from '../models/user.model.js';
 
 // Admin controller object for admin and superadmin functionality
 const adminController = {};

@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import CandidateProfile from "../model/candidateProfile.model.js";
-import jobs from '../model/jobs.model.js';
-import JobApply from "../model/jobApply.model.js";
-import SavedJob from '../model/savedJob.model.js';
+import CandidateProfile from "../models/candidateProfile.model.js";
+import jobs from '../models/jobs.model.js';
+import JobApply from "../models/jobApply.model.js";
+import SavedJob from '../models/savedJob.model.js';
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 import fs from 'fs';
 import path from 'path';

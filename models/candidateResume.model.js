@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import ResumeAlert from '../model/resumeAlert.model.js';
+import ResumeAlert from './resumeAlert.model.js';
 import { sendResumeAlertEmail } from '../utils/mailer.js';
 import { matchResumeToAlert } from '../utils/resumeMatching.js';
 

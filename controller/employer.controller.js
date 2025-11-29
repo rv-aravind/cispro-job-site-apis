@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import CompanyProfile from "../model/companyProfile.model.js";
+import CompanyProfile from "../models/companyProfile.model.js";
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 import fs from 'fs';
 import path from 'path';
