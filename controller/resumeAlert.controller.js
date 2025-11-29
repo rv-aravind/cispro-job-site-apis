@@ -1,8 +1,8 @@
-import ResumeAlert from '../models/resumeAlert.model.js';
+import ResumeAlert from '../models/resumeAlert.model.js'; 
 import CandidateProfile from '../models/candidateProfile.model.js';
 import { BadRequestError, NotFoundError } from '../utils/errors.js';
 import { sendResumeAlertEmail } from '../utils/mailer.js';
-import { matchResumeToAlert } from '../utils/resumeMatching.js';
+import { matchResumeToAlert } from '../utils/resumeMatching.js'; 
 import EventEmitter from 'events';
 
 const alertEmitter = new EventEmitter();
