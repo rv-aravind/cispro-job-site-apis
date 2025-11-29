@@ -171,9 +171,9 @@ jobsController.getJobPost = async (req, res, next) => {
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
-      throw new ForbiddenError('You do not have permission to access this job post');
-    }
+    // if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
+    //   throw new ForbiddenError('You do not have permission to access this job post');
+    // }
 
     return res.status(200).json({
       success: true,

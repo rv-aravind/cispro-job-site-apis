@@ -30,10 +30,10 @@ employerRouter.delete('/company-profile/delete/:id',authenticate,authorize(['emp
 employerRouter.post('/jobs/create', authenticate, authorize(['employer', 'admin', 'superadmin']), companyUpload, normalizeBody, jobsController.createJobPost);  //we have added companyUpload to handle file uploads for job posts and normalizeBody to handle FormData parsing
 
 // Get all job posts (filtered by employer for non-superadmins)
-employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.getJobPosts);
+employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']),jobsController.getJobPosts);
 
 // Get a single job post for editing
-employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.getJobPost);
+employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']),jobsController.getJobPost);
 
 // Update a job post
 employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admin', 'superadmin']), companyUpload, normalizeBody, jobsController.updateJobPost);
