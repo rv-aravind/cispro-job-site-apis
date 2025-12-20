@@ -35,16 +35,16 @@ candidateRouter.post('/jobs/save/:jobId', authenticate, authorize(['candidate'])
 candidateRouter.get('/applications/:applicationId/status', authenticate, authorize(['candidate']), candidateController.getApplicationStatus);
 
 // Get applied jobs dashboard
-candidateRouter.get('/applied-jobs', authenticate, authorize(['candidate']), candidateController.getAppliedJobs);
+candidateRouter.get('/applied-jobs/get', authenticate, authorize(['candidate']), candidateController.getAppliedJobs);
 
 // Get saved jobs dashboard
-candidateRouter.get('/saved-jobs', authenticate, authorize(['candidate']), candidateController.getSavedJobs);
+candidateRouter.get('/saved-jobs/get', authenticate, authorize(['candidate']), candidateController.getSavedJobs);
 
 // Delete applied job
 candidateRouter.delete('/applied-jobs/:applicationId', authenticate, authorize(['candidate']), candidateController.deleteAppliedJob);
 
 // Delete saved job
-candidateRouter.delete('/saved-jobs/:savedJobId', authenticate, authorize(['candidate']), candidateController.deleteSavedJob);
+candidateRouter.delete('/jobs/saved-jobs/remove/:savedJobId', authenticate, authorize(['candidate']), candidateController.deleteSavedJob);
 
 
 // Create resume

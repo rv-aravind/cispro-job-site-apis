@@ -7,6 +7,8 @@ const jobAlertSchema = new mongoose.Schema({
     required: true,
   },
   criteria: {
+    // In jobAlert.model.js → criteria
+    title: { type: String, default: 'Untitled Alert' },
     categories: {
       type: [String],
       default: [],
