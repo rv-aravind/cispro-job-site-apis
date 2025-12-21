@@ -9,7 +9,7 @@ import normalizeBody from '../utils/normalizeBody.js';
 const candidateRouter = Router();
 
 // Get all candidate profiles (accessible to admins and superadmins)
-candidateRouter.get('/profile/fetch-all', authenticate, authorize(['admin', 'superadmin', 'candidate']), candidateController.getAllCandidateProfiles);
+candidateRouter.get('/profile/fetch-all', candidateController.getAllCandidateProfiles);
 
 // Create candidate profile (with file upload)
 candidateRouter.post('/profile/create', authenticate, authorize(['candidate']), candidateUpload, normalizeBody, candidateController.createCandidateProfile);
