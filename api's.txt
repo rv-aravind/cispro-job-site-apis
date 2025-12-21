@@ -1437,3 +1437,73 @@ Response:
     "success": true,
     "message": "Resume alert deleted successfully"
 }
+
+//CV Manger
+//upload cv
+http://localhost:5000/api/v1/candidate-dashboard/cvs/upload  - POST 
+
+curl -X POST "http://localhost:5000/api/v1/candidate-dashboard/cvs/upload" \
+  -H "Authorization: Bearer <token>" \
+  -F "cv=@/path/to/your/resume.pdf"
+
+Key : cv 
+Value: Select a file (e.g., my-cv.pdf or resume.docx)
+
+response:
+
+{
+    "success": true,
+    "message": "CV uploaded successfully",
+    "cv": {
+        "candidate": "687b3ab5745d8f29bb6a1496",
+        "file": "/uploads/candidate/39ca65f0-c5bf-4e7b-9cfa-1bbd7898d340.pdf",
+        "originalName": "Aravindakumar-S (1).pdf",
+        "_id": "69479d149598e92292d8b11f",
+        "uploadedAt": "2025-12-21T07:09:08.737Z",
+        "createdAt": "2025-12-21T07:09:08.744Z",
+        "updatedAt": "2025-12-21T07:09:08.744Z",
+        "__v": 0
+    }
+}
+
+
+//get cv 
+
+http://localhost:5000/api/v1/candidate-dashboard/cvs/list  - GET 
+
+pass - token 
+
+Response: 
+
+{
+    "success": true,
+    "cvs": [
+        {
+            "_id": "69479d149598e92292d8b11f",
+            "candidate": "687b3ab5745d8f29bb6a1496",
+            "file": "/uploads/candidate/39ca65f0-c5bf-4e7b-9cfa-1bbd7898d340.pdf",
+            "originalName": "Aravindakumar-S (1).pdf",
+            "uploadedAt": "2025-12-21T07:09:08.737Z",
+            "createdAt": "2025-12-21T07:09:08.744Z",
+            "updatedAt": "2025-12-21T07:09:08.744Z"
+        }
+    ]
+}
+
+//delete 
+
+DELETE /api/v1/candidate-dashboard/cvs/delete/:id
+
+Response:
+
+{
+    "success": true,
+    "message": "CV deleted successfully"
+}
+
+Failure: 
+
+{
+    "success": false,
+    "message": "CV not found or not yours"
+}

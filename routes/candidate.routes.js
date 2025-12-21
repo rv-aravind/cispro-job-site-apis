@@ -1,8 +1,9 @@
 import { Router } from "express";
 import candidateController from "../controller/candidate.controller.js";
+import candidateCvController from '../controller/candidateCv.controller.js';
 import candidateResumeController from '../controller/candidateResume.controller.js';
 import { authenticate, authorize } from "../middleware/auth.js";
-import candidateUpload from "../utils/candidateFileUpload.js"; 
+import { candidateUpload, cvUpload } from "../utils/candidateFileUpload.js"; 
 import normalizeBody from '../utils/normalizeBody.js';
 
 const candidateRouter = Router();
@@ -64,5 +65,16 @@ candidateRouter.delete('/resumes/delete/:id', authenticate, authorize(['candidat
 
 // Generate PDF CV
 candidateRouter.get('/resumes/:id/generate-pdf', authenticate, authorize(['candidate']), candidateResumeController.generatePDF);
+
+//cv management routes
+// Upload CV file
+candidateRouter.post('/cvs/upload', authenticate, authorize(['candidate']), cvUpload, candidateCvController.uploadCv);
+
+// List CVs
+candidateRouter.get('/cvs/list', authenticate, authorize(['candidate']), candidateCvController.listCvs);
+
+// Delete CV
+candidateRouter.delete('/cvs/delete/:id', authenticate, authorize(['candidate']), candidateCvController.deleteCv);
+
 
 export default candidateRouter;

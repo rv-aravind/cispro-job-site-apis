@@ -49,4 +49,7 @@ const candidateUpload = upload.fields([
   { name: 'portfolio', maxCount: 1 }
 ]);
 
-export default candidateUpload;
+// For CV Manager - single CV upload
+const cvUpload = upload.single('cv');
+
+export { candidateUpload, cvUpload };
