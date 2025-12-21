@@ -20,6 +20,10 @@ candidateRouter.put('/profile/update/:id', authenticate, authorize(['candidate',
 // Get single candidate profile
 candidateRouter.get('/profile/get/:id', authenticate, authorize(['candidate', 'superadmin']), candidateController.getCandidateProfile);
 
+// Get candidate's own profiles (for candidate users only)
+candidateRouter.get('/profile/my-profiles', authenticate, authorize(['candidate']), candidateController.getCandidateProfilesForCandidate);
+
+
 // Delete candidate profile
 candidateRouter.delete('/profile/delete/:id', authenticate, authorize(['candidate', 'superadmin']), candidateController.deleteCandidateProfile);
 

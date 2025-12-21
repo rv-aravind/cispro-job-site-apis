@@ -20,6 +20,10 @@ employerRouter.post('/company-profile/create',authenticate,authorize(['employer'
 employerRouter.put( '/company-profile/update/:id',authenticate,authorize(['employer', 'admin', 'superadmin']), companyUpload,employerController.updateCompanyProfile);
 // Get company profile
 employerRouter.get('/company-profile/get/:id',authenticate,authorize(['employer', 'admin', 'superadmin', 'candidate']),employerController.getCompanyProfile);
+
+// Get company profiles for logged-in employer
+employerRouter.get('/company-profile/my-profiles', authenticate, authorize(['employer']), employerController.getCompanyProfilesForEmployer);
+
 // Delete company profile
 employerRouter.delete('/company-profile/delete/:id',authenticate,authorize(['employer', 'admin', 'superadmin']),employerController.deleteCompanyProfile);
 

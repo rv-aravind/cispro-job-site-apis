@@ -249,6 +249,30 @@ candidateController.getCandidateProfile = async (req, res, next) => {
   }
 };
 
+
+/**
+ * Retrieves candidate profiles for the logged-in candidate
+ * @param {Object} req - Request object, with authenticated user info in req.user
+ * @param {Object} res - Response object to send the result
+ * @param {Function} next - Next middleware function for error handling
+ */
+candidateController.getCandidateProfilesForCandidate = async (req, res, next) => {
+  try {
+    const candidateId = req.user.id;
+
+    // Fetch all candidate profiles that belong to this candidate, excluding __v field
+    const profiles = await CandidateProfile.find({ candidate: candidateId }).select('-__v');
+
+    return res.status(200).json({
+      success: true,
+      profiles,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 /**
  * Deletes a candidate profile by ID
  * @param {Object} req - Request object

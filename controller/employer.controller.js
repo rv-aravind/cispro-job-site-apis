@@ -353,6 +353,42 @@ employerController.getCompanyProfile = async (req, res, next) => {
 
 
 /**
+ * Retrieves company profiles for the logged-in employer
+ * @param {Object} req - Request object, with authenticated user info in req.user
+ * @param {Object} res - Response object to send the result
+ * @param {Function} next - Next middleware function for error handling
+ */
+employerController.getCompanyProfilesForEmployer = async (req, res, next) => {
+  try {
+    const employerId = req.user.id;
+
+    // Fetch only company profiles that belong to this employer
+    const profiles = await CompanyProfile
+      .find({ employer: employerId })
+      .select('-__v');
+
+    // No profiles found
+    if (!profiles || profiles.length === 0) {
+      return res.status(200).json({
+        success: true,
+        profiles: [],
+        message: "No company profile found for this employer",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      profiles,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+/**
  * Deletes a company profile and associated files
  * @param {Object} req - Request object containing profile ID and user info
  * @param {Object} res - Response object to send back the result
