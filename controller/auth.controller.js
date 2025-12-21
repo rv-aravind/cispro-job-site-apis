@@ -166,7 +166,7 @@ authentication.changePassword = async(req, res, next) => {
         const hashedNewPassword = await bcrypt.hash(newPassword, salt);
         // Update user's password
         user.password = hashedNewPassword;
-        await user.save();
+        await user.save({ validateBeforeSave: false });
         // Send success response
         return res.status(200).json({
             success: true,

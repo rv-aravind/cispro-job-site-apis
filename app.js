@@ -25,7 +25,7 @@ const app = express();
 // Allow requests from specific origins
 const allowedOrigins = [
   'http://localhost:3000',                      // Local frontend
-  'https://cispro-job-site-fawn.vercel.app',         // Vercel frontend
+  'https://coimbatorejobs.in/',         // versal frontend
 ];
 
 app.use(cors({
