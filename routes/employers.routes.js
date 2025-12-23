@@ -3,9 +3,11 @@ import employerController from '../controller/employer.controller.js';
 import employerApplicantsController from '../controller/employerApplicants.controller.js';
 import resumeAlertController from '../controller/resumeAlert.controller.js';
 import jobsController from '../controller/jobs.controller.js';
+import employerDashboardController from '../controller/employerDashboard.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import companyUpload from '../utils/fileUpload.js';  
 import normalizeBody from '../utils/normalizeBody.js';
+import trackView from '../middleware/trackView.js';
 
 const employerRouter = Router();
 
@@ -19,7 +21,7 @@ employerRouter.post('/company-profile/create',authenticate,authorize(['employer'
 // Update company profile (with file upload)
 employerRouter.put( '/company-profile/update/:id',authenticate,authorize(['employer', 'admin', 'superadmin']), companyUpload,employerController.updateCompanyProfile);
 // Get company profile
-employerRouter.get('/company-profile/get/:id',authenticate,authorize(['employer', 'admin', 'superadmin', 'candidate']),employerController.getCompanyProfile);
+employerRouter.get('/company-profile/get/:id', authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']), trackView, employerController.getCompanyProfile);
 
 // Get company profiles for logged-in employer
 employerRouter.get('/company-profile/my-profiles', authenticate, authorize(['employer']), employerController.getCompanyProfilesForEmployer);
@@ -92,6 +94,27 @@ employerRouter.get('/resume-alerts/get-all', authenticate, authorize(['employer'
 
 // Get matches for specific alert
 employerRouter.get('/resume-alerts/:id/matches', authenticate, authorize(['employer', 'admin', 'superadmin']), resumeAlertController.getAlertMatches);
+
+
+// Employer dashboard routes
+// Dashboard stats and analytics routes
+employerRouter.get('/stats', authenticate, authorize(['employer', 'admin', 'superadmin']), employerDashboardController.getDashboardStats);
+
+// get profile views data
+employerRouter.get('/profile-views', authenticate, authorize(['employer', 'admin', 'superadmin']), employerDashboardController.getProfileViewsData);
+
+// get recent activities
+employerRouter.get('/recent-activities', authenticate, authorize(['employer', 'admin', 'superadmin']), employerDashboardController.getRecentActivity);
+
+// employerRouter.get('/message-stats', authenticate, authorize(['employer', 'admin', 'superadmin']), 
+//   employerDashboardController.getMessageStats);
+
+// get application trends
+employerRouter.get('/application-trends', authenticate, authorize(['employer', 'admin', 'superadmin']), employerDashboardController.getApplicationTrends);
+
+// get top applicants
+employerRouter.get('/job-status-distribution', authenticate, authorize(['employer', 'admin', 'superadmin']), employerDashboardController.getJobStatusDistribution);
+
 
 
 export default employerRouter;

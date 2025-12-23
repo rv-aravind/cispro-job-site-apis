@@ -1507,3 +1507,137 @@ Failure:
     "success": false,
     "message": "CV not found or not yours"
 }
+
+//employerdashboard api's:
+
+// recent-activities
+{{local}}api/v1/employer-dashboard/recent-activities -GET 
+
+Response:
+
+{
+    "success": true,
+    "activities": [
+        {
+            "type": "application",
+            "message": "rv applied for DevOps Engineer",
+            "time": "2025-12-01T15:33:05.646Z",
+            "status": "Rejected"
+        }
+    ]
+}
+
+//stats
+{{local}}api/v1/employer-dashboard/stats
+
+response:
+
+{
+    "success": true,
+    "stats": {
+        "totalJobs": 1,
+        "activeJobs": 1,
+        "totalApplications": 1,
+        "thisMonthApplications": 1,
+        "pendingApplications": 0,
+        "shortlistedCount": 1,
+        "totalMessages": 0,
+        "profileViews": 0,
+        "conversionRate": 100,
+        "applicationGrowth": 100,
+        "lastUpdated": "2025-12-23T16:04:14.575Z"
+    }
+}
+
+
+//job-status-distribution
+
+{{local}}api/v1/employer-dashboard/job-status-distribution -GET 
+
+Response: (use pie chart)
+
+{
+    "success": true,
+    "distribution": [
+        {
+            "status": "Published",
+            "count": 1,
+            "percentage": 100,
+            "totalApplications": 38
+        }
+    ],
+    "totalJobs": 1
+}
+
+
+//application-trends
+
+{{local}}api/v1/employer-dashboard/application-trends - GET 
+
+Response:
+
+{
+    "success": true,
+    "period": "monthly",
+    "data": [
+        {
+            "date": "2025-12",
+            "total": 1,
+            "pending": 0,
+            "accepted": 0,
+            "rejected": 1
+        }
+    ],
+    "startDate": "2024-12-23T17:08:56.405Z",
+    "endDate": "2025-12-23T17:08:56.405Z"
+}
+
+//get companyProfile views 
+
+{{local}}api/v1/employer-dashboard/profile-views - GET
+
+Response:
+
+{
+    "success": true,
+    "totalViews": 2,
+    "uniqueViewers": 1,
+    "monthlyData": [
+        {
+            "month": "December",
+            "year": 2025,
+            "totalViews": 2,
+            "uniqueViews": 1
+        },
+        {
+            "month": "November",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "October",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "September",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "August",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "July",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        }
+    ]
+}

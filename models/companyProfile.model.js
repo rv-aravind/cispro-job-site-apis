@@ -81,6 +81,27 @@ const companyProfileSchema = new mongoose.Schema({
     minlength: 10,
     maxlength: 2000
   },
+   // Simple profile views tracking
+  profileViews: {
+    type: Number,
+    default: 0
+  },
+
+  // Track daily views for accurate chart
+  dailyViews: [
+    {
+      date: { type: String, required: true }, // 'YYYY-MM-DD'
+      count: { type: Number, default: 0 },
+      unique: { type: Number, default: 0 } // unique candidates
+    }
+  ],
+
+  uniqueViewers: [
+    {
+      candidate: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      lastViewed: { type: Date, default: Date.now }
+    }
+  ],
   // mission: {
   //   type: String,
   //   trim: true,
@@ -148,6 +169,7 @@ const companyProfileSchema = new mongoose.Schema({
  });
  
 // Indexes for faster queries
+companyProfileSchema.index({ 'dailyViews.date': 1 });
 companyProfileSchema.index({ employer: 1 }, { unique: true });  // Uncomment if each employer can have only one profile
 companyProfileSchema.index({ companyName: 'text', industry: 'text' });
 companyProfileSchema.index({ 'location.city': 1, 'location.country': 1 });

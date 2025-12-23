@@ -445,4 +445,54 @@ employerController.deleteCompanyProfile = async (req, res, next) => {
   }
 };
 
+
+// employerDashboardController.getSummary = async (req, res, next) => {
+//   try {
+//     const employerId = req.user.id;
+
+//     const jobs = await JobPost.find({ employer: employerId });
+//     const jobIds = jobs.map(j => j._id);
+
+//     const totalJobs = jobs.length;
+
+//     const applicationsAgg = await Application.aggregate([
+//       { $match: { jobPost: { $in: jobIds } } },
+//       {
+//         $group: {
+//           _id: "$status",
+//           count: { $sum: 1 }
+//         }
+//       }
+//     ]);
+
+//     const totalApplications = applicationsAgg.reduce((a, b) => a + b.count, 0);
+//     const shortlisted = await Application.countDocuments({
+//       jobPost: { $in: jobIds },
+//       shortlisted: true
+//     });
+
+//     const recentApplicants = await Application.find({
+//       jobPost: { $in: jobIds }
+//     })
+//       .populate("candidate", "name profilePhoto")
+//       .populate("candidateProfile", "jobTitle")
+//       .populate("jobPost", "title")
+//       .sort({ createdAt: -1 })
+//       .limit(5);
+
+//     res.json({
+//       success: true,
+//       metrics: {
+//         totalJobs,
+//         totalApplications,
+//         shortlisted,
+//       },
+//       recentApplicants
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
 export default employerController;
