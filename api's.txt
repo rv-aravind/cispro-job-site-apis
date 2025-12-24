@@ -1641,3 +1641,166 @@ Response:
         }
     ]
 }
+
+//candidate dashboard API's:
+
+//STATS
+{{local}}api/v1/candidate-dashboard/stats - GET
+
+Response:
+{
+    "success": true,
+    "stats": {
+        "appliedJobs": 2,
+        "savedJobs": 3,
+        "jobAlerts": 2,
+        "profileViews": 0,
+        "profileCompleteness": 100,
+        "applicationsThisMonth": 2,
+        "applicationGrowth": 100,
+        "lastUpdated": "2025-12-24T16:41:14.543Z"
+    }
+}
+
+
+//Recent-Activity 
+
+{{local}}api/v1/candidate-dashboard/recent-activities  - GET 
+
+Response:
+
+{
+    "success": true,
+    "activities": [
+        {
+            "type": "saved",
+            "message": "Saved job: DevOps Engineer",
+            "time": "2025-12-21T15:09:37.922Z"
+        },
+        {
+            "type": "saved",
+            "message": "Saved job: Junior software developer",
+            "time": "2025-12-15T05:07:48.422Z"
+        },
+        {
+            "type": "alert",
+            "message": "Created job alert: Untitled Alert",
+            "time": "2025-12-12T11:32:01.318Z"
+        },
+        {
+            "type": "alert",
+            "message": "Created job alert: Untitled Alert",
+            "time": "2025-12-12T11:29:08.980Z"
+        },
+        {
+            "type": "saved",
+            "message": "Saved job: AI Developer",
+            "time": "2025-12-10T19:20:14.167Z"
+        },
+        {
+            "type": "application",
+            "message": "Applied to Junior software developer",
+            "time": "2025-12-10T17:28:00.378Z",
+            "status": "Pending"
+        },
+        {
+            "type": "application",
+            "message": "Applied to DevOps Engineer",
+            "time": "2025-12-01T15:33:05.646Z",
+            "status": "Rejected"
+        }
+    ]
+}
+
+
+//Applicants-trends
+
+{{local}}api/v1/candidate-dashboard/application-trends -GET 
+
+response:
+
+{
+    "success": true,
+    "period": "monthly",
+    "data": [
+        {
+            "date": "2025-12",
+            "total": 2,
+            "pending": 1,
+            "reviewed": 0,
+            "accepted": 0,
+            "rejected": 1
+        }
+    ]
+}
+
+//profile-views 
+//{{local}}api/v1/candidate-dashboard/profile-views - GET 
+
+{
+    "success": true,
+    "totalViews": 2,
+    "uniqueViewers": 1,
+    "monthlyData": [
+        {
+            "month": "December",
+            "year": 2025,
+            "totalViews": 2,
+            "uniqueViews": 1
+        },
+        {
+            "month": "November",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "October",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "September",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "August",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        },
+        {
+            "month": "July",
+            "year": 2025,
+            "totalViews": 0,
+            "uniqueViews": 0
+        }
+    ]
+}
+
+
+//job-type-distribution 
+
+{{local}}api/v1/candidate-dashboard/job-type-distribution
+
+Response:
+
+{
+    "success": true,
+    "distribution": [
+        {
+            "jobType": "Part-time",
+            "count": 1,
+            "percentage": 50
+        },
+        {
+            "jobType": "Full-time",
+            "count": 1,
+            "percentage": 50
+        }
+    ],
+    "totalApplications": 2
+}

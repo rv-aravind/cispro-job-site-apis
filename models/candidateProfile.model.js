@@ -83,6 +83,22 @@ const candidateProfileSchema = new mongoose.Schema({
     required: [true, 'Description is required'],
     trim: true,
   },
+  // candidateProfile.model.js – add these
+  profileViews: {
+    type: Number,
+    default: 0
+  },
+
+  dailyViews: [{
+    date: { type: String, required: true }, // 'YYYY-MM-DD'
+    count: { type: Number, default: 0 },
+    unique: { type: Number, default: 0 }
+  }],
+
+  uniqueViewers: [{
+    viewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // employer who viewed
+    lastViewed: { type: Date, default: Date.now }
+  }],
   socialMedia: {
     facebook: { type: String, trim: true, default: '' },
     twitter: { type: String, trim: true, default: '' },
@@ -143,6 +159,7 @@ candidateProfileSchema.post('save', async function (doc) {
 candidateProfileSchema.index({ candidate: 1 }, { unique: true });
 candidateProfileSchema.index({ email: 1 }, { unique: true });
 candidateProfileSchema.index({ jobTitle: 'text', description: 'text' });
+candidateProfileSchema.index({ 'dailyViews.date': 1 });
 
 const CandidateProfile = mongoose.model('CandidateProfile', candidateProfileSchema);
 
