@@ -146,7 +146,7 @@ jobsController.getJobPosts = async (req, res, next) => {
     // Query and populate related company profile (only name and logo)
     const jobPosts = await jobs.find(query)
       .populate('companyProfile', 'companyName logo')
-      .select('employer companyProfile title location status createdAt applicationDeadline')
+      .select('employer companyProfile title location applicantCount status createdAt applicationDeadline')
       .sort({ createdAt: -1 });  // Most recent first
 
     return res.status(200).json({
@@ -281,8 +281,22 @@ jobsController.updateJobPost = async (req, res, next) => {
 
     // POSITIONS UPDATE
     if (positions !== undefined) {
-      const newTotal = Number(positions);
+      let newTotal;
 
+      // Handle both formats:
+      // positions: 50
+      // positions: { total: 50 }
+      if (typeof positions === 'object') {
+        newTotal = Number(positions.total);
+      } else {
+        newTotal = Number(positions);
+      }
+
+      if (isNaN(newTotal) || newTotal < 0) {
+        throw new BadRequestError('Invalid positions value');
+      }
+
+      // cannot reduce below already applied count
       if (newTotal < jobPost.applicantCount) {
         throw new BadRequestError(
           `Positions cannot be less than applied count (${jobPost.applicantCount})`
@@ -296,14 +310,13 @@ jobsController.updateJobPost = async (req, res, next) => {
         remaining: newRemaining,
       };
 
+      // auto close / reopen job
       if (newRemaining === 0) {
         updateData.status = 'Closed';
       } else if (jobPost.status === 'Closed') {
         updateData.status = 'Published';
       }
     }
-
-    console.log("update-test", updateData);
     
 
     // Update job post
