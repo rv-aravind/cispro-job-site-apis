@@ -49,7 +49,7 @@ const candidateProfileSchema = new mongoose.Schema({
   experience: {
     type: String,
     required: [false, 'Experience is required'],
-    enum: ['Fresher', '1-2 years', '2-5 years', '5-10 years', '10+ years'],
+    enum: ['Fresher', '1-3 years', '3-5 years', '5-10 years', '10+ years'],
   },
   age: {
     type: Number,
@@ -82,6 +82,11 @@ const candidateProfileSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Description is required'],
     trim: true,
+  },
+  jobType: {
+    type: String,
+    required: [true, 'Job type is required'],
+    enum: ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship', 'Temporary'],
   },
   // candidateProfile.model.js – add these
   profileViews: {

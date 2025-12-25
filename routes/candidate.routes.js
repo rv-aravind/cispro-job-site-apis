@@ -99,4 +99,7 @@ candidateRouter.get('/application-trends', authenticate, authorize(['candidate']
 candidateRouter.get('/job-type-distribution', authenticate, authorize(['candidate']), candidateDashboardController.getJobTypeDistribution);
 
 
+// recommended jobs route
+candidateRouter.get('/recommended-jobs', authenticate, authorize(['candidate']), candidateController.getRecommendedJobs);
+
 export default candidateRouter;

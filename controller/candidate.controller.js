@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import CandidateProfile from "../models/candidateProfile.model.js";
-import jobs from '../models/jobs.model.js';
+import JobPost from '../models/jobs.model.js';
 import JobApply from "../models/jobApply.model.js";
 import SavedJob from '../models/savedJob.model.js';
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 import fs from 'fs';
 import path from 'path';
+import natural from 'natural';  //library (for TF-IDF / cosine similarity)
 
 const candidateController = {};
 
@@ -42,11 +43,11 @@ candidateController.createCandidateProfile = async (req, res, next) => {
     const profileData = req.body;
 
     const { 
-      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
+      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description,jobType, socialMedia, location
     } = profileData;
 
     // Validate required fields
-    const requiredFields = ['fullName', 'jobTitle', 'phone', 'email', 'educationLevels', 'languages', 'categories', 'description', 'age', 'gender', 'location'];
+    const requiredFields = ['fullName', 'jobTitle', 'phone', 'email', 'educationLevels', 'languages', 'categories', 'description', 'jobType', 'age', 'gender', 'location'];
     const missingFields = requiredFields.filter(field => !profileData[field] || (field === 'location' && (!profileData[field].city || !profileData[field].completeAddress)));
     if (missingFields.length > 0) {
       throw new BadRequestError(`Missing or incomplete required fields: ${missingFields.join(', ')}`);
@@ -81,6 +82,7 @@ candidateController.createCandidateProfile = async (req, res, next) => {
       categories: Array.isArray(categories) ? categories : (typeof categories === 'string' ? JSON.parse(categories) : [categories]),
       allowInSearch: allowInSearch !== undefined ? allowInSearch : true,
       description,
+      jobType,
       socialMedia: typeof socialMedia === 'object' ? socialMedia : (socialMedia ? JSON.parse(socialMedia) : {}),
       location: typeof location === 'object' ? location : (location ? JSON.parse(location) : {}),
       profilePhoto,
@@ -130,7 +132,7 @@ candidateController.updateCandidateProfile = async (req, res, next) => {
     let profileData = req.body;
 
     const { 
-      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description, socialMedia, location
+      fullName, jobTitle, phone, email, website, currentSalary, expectedSalary, experience, age, gender, educationLevels, languages, categories, allowInSearch, description, jobType, socialMedia, location
     } = profileData;
 
     // Find the profile by ID
@@ -174,6 +176,8 @@ candidateController.updateCandidateProfile = async (req, res, next) => {
     profile.experience = experience || profile.experience;
     profile.age = age || profile.age;
     profile.gender = gender || profile.gender;
+    profile.jobType = jobType || profile.jobType;
+
     // Normalize arrays (support repeated form-data keys or JSON string arrays)
     profile.educationLevels = educationLevels
       ? (Array.isArray(educationLevels)
@@ -324,7 +328,7 @@ candidateController.deleteCandidateProfile = async (req, res, next) => {
  */
 candidateController.getAllJobPosts = async (req, res, next) => {
   try {
-    const jobPosts = await jobs.find({ status: 'Published' })
+    const jobPosts = await JobPost.find({ status: 'Published' })
       .populate('companyProfile', 'companyName logo') // Populate company name and logo
       .select('-__v -applicantCount') // Hide internal fields
       .sort({ createdAt: -1 }); // Sort by newest first
@@ -354,7 +358,7 @@ candidateController.applyToJob = async (req, res, next) => {
     const files = req.files || {};
 
     // Ensure job post exists and is published
-    const jobPost = await jobs.findById(jobPostId);
+    const jobPost = await JobPost.findById(jobPostId);
     if (!jobPost || jobPost.status !== 'Published') {
       throw new NotFoundError('Job post not found or not available');
     }
@@ -429,7 +433,7 @@ candidateController.saveJob = async (req, res, next) => {
     const jobPostId = req.params.jobId;
 
     // Ensure job post exists
-    const jobPost = await jobs.findById(jobPostId);
+    const jobPost = await JobPost.findById(jobPostId);
     if (!jobPost) {
       throw new NotFoundError('Job post not found');
     }
@@ -601,5 +605,134 @@ candidateController.getApplicationStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+
+/**
+ * Get recommended jobs for candidate
+ * @route GET /api/candidate/recommended-jobs?limit=10&page=1
+ * @access Private (Candidate only)
+ */
+candidateController.getRecommendedJobs = async (req, res, next) => {
+  try {
+    const candidateId = req.user.id;
+    const { limit = 10, page = 1 } = req.query;
+
+    const profile = await CandidateProfile.findOne({ candidate: candidateId });
+    if (!profile) {
+      return res.status(200).json({ success: true, recommendedJobs: [], pagination: { page: parseInt(page), limit: parseInt(limit), total: 0 } });
+    }
+
+    // Safe defaults
+    const profileCats = Array.isArray(profile.categories) ? profile.categories : [];
+    const profileLoc = profile.location?.city || '';
+    const profileExp = profile.experience || '';
+    const profileJobTypes = Array.isArray(profile.preferences?.jobTypes) ? profile.preferences.jobTypes : [];
+
+    // Get history for similarity
+    const applied = await JobApply.find({ candidate: candidateId }).select('jobPost');
+    const saved = await SavedJob.find({ candidate: candidateId }).select('jobPost');
+    const historyIds = [...applied, ...saved].map(h => h.jobPost);
+
+    const historyJobs = await JobPost.find({ _id: { $in: historyIds } })
+      .select('description specialisms location experience jobType offeredSalary');
+
+    // Build match query (using specialisms as categories)
+    const match = {
+      status: 'Published',
+      applicationDeadline: { $gte: new Date() },
+      $or: [
+        { specialisms: { $in: profileCats } },
+        { 'location.city': profileLoc },
+        { experience: profileExp },
+        { jobType: { $in: profileJobTypes } },
+      ].filter(Boolean) // remove empty conditions
+    };
+
+    // If no strong filters, fallback to all published
+    if (Object.keys(match.$or).length === 0) delete match.$or;
+
+    const jobs = await JobPost.find(match)
+      .populate('companyProfile', 'companyName logo')
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    // Score and rank
+    const scoredJobs = jobs.map(job => {
+      let score = 0;
+
+      // Safe arrays
+      const jobCats = Array.isArray(job.specialisms) ? job.specialisms : [];
+      const jobLoc = job.location?.city || '';
+      const jobExp = job.experience || '';
+      const jobType = job.jobType || '';
+
+      // Category/specialism match
+      const commonCats = jobCats.filter(c => profileCats.includes(c)).length;
+      score += commonCats * 20;
+
+      // Location
+      if (jobLoc && profileLoc && jobLoc.toLowerCase() === profileLoc.toLowerCase()) score += 25;
+
+      // Experience
+      if (jobExp && profileExp && jobExp === profileExp) score += 15;
+
+      // Job Type
+      if (profileJobTypes.includes(jobType)) score += 15;
+
+      // Salary (basic)
+      const jobSalaryNum = parseFloat(job.offeredSalary?.replace(/[^0-9.]/g, '') || '0');
+      const expectedMin = profile.expectedSalary?.min || 0;
+      if (jobSalaryNum >= expectedMin) score += 10;
+
+      // Description similarity (NLP)
+      const historyDesc = historyJobs.map(h => h.description || '').join(' ');
+      const jobDesc = job.description || '';
+      const similarity = getSimilarity(historyDesc, jobDesc);
+      score += similarity * 15;
+
+      return { 
+        job: job.toObject(), 
+        matchScore: Math.round(Math.min(score, 100))
+      };
+    })
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+    return res.status(200).json({
+      success: true,
+      recommendedJobs: scoredJobs,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: scoredJobs.length
+      }
+    });
+  } catch (error) {
+    console.error('Recommendation error:', error);
+    next(error);
+  }
+};
+
+// Helper: Cosine similarity using natural TF-IDF
+function getSimilarity(text1, text2) {
+  if (!text1 || !text2) return 0;
+  
+  const tfidf = new natural.TfIdf();
+  tfidf.addDocument(text1);
+  tfidf.addDocument(text2);
+  
+  const doc1 = tfidf.documents[0];
+  const doc2 = tfidf.documents[1];
+  
+  let dotProduct = 0;
+  const magnitude1 = Math.sqrt(Object.values(doc1).reduce((sum, val) => sum + val**2, 0));
+  const magnitude2 = Math.sqrt(Object.values(doc2).reduce((sum, val) => sum + val**2, 0));
+
+  Object.keys(doc1).forEach(key => {
+    if (doc2[key]) dotProduct += doc1[key] * doc2[key];
+  });
+
+  return magnitude1 && magnitude2 ? dotProduct / (magnitude1 * magnitude2) : 0;
+}
 
 export default candidateController;
