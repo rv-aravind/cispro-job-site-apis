@@ -45,22 +45,22 @@ const jobApplicationSchema = new mongoose.Schema({
 jobApplicationSchema.index({ jobPost: 1, candidate: 1, status:1, createdAt:-1 }, { unique: true });
 
 // Hook to increment applicantCount on save
-jobApplicationSchema.post('save', async function (doc) {
-  try {
-    await JobPost.findByIdAndUpdate(doc.jobPost, { $inc: { applicantCount: 1 } });
-  } catch (error) {
-    console.error('Error incrementing applicantCount:', error);
-  }
-});
+// jobApplicationSchema.post('save', async function (doc) {
+//   try {
+//     await JobPost.findByIdAndUpdate(doc.jobPost, { $inc: { applicantCount: 1 } });
+//   } catch (error) {
+//     console.error('Error incrementing applicantCount:', error);
+//   }
+// });
 
-// Hook to decrement applicantCount on delete
-jobApplicationSchema.post('findOneAndDelete', async function (doc) {
-  try {
-    await JobPost.findByIdAndUpdate(doc.jobPost, { $inc: { applicantCount: -1 } });
-  } catch (error) {
-    console.error('Error decrementing applicantCount:', error);
-  }
-});
+// // Hook to decrement applicantCount on delete
+// jobApplicationSchema.post('findOneAndDelete', async function (doc) {
+//   try {
+//     await JobPost.findByIdAndUpdate(doc.jobPost, { $inc: { applicantCount: -1 } });
+//   } catch (error) {
+//     console.error('Error decrementing applicantCount:', error);
+//   }
+// });
 
 const Application = mongoose.model('JobApplication', jobApplicationSchema);
 export default Application;

@@ -363,6 +363,10 @@ candidateController.applyToJob = async (req, res, next) => {
       throw new NotFoundError('Job post not found or not available');
     }
 
+    if (jobPost.positions.remaining <= 0) {
+      throw new BadRequestError('All open positions are closed for this job');
+    }
+
     // Ensure candidate has a profile
     const candidateProfile = await CandidateProfile.findOne({ candidate: candidateId });
     console.log("test", candidateProfile);
@@ -403,6 +407,15 @@ candidateController.applyToJob = async (req, res, next) => {
     });
 
     await newApplication.save();
+
+    // decrement positions & increment applicantCount (NOTE: This is increamenting already in jobapply model (// Hook to increment applicantCount on save (commented now)))
+    jobPost.positions.remaining -= 1;
+    jobPost.applicantCount += 1;
+
+    // auto-close job if no positions left
+    if (jobPost.positions.remaining === 0) {
+      jobPost.status = 'Closed';
+    }
 
     return res.status(201).json({
       success: true,
@@ -534,13 +547,31 @@ candidateController.deleteAppliedJob = async (req, res, next) => {
     const candidateId = req.user.id;
     const applicationId = req.params.applicationId;
 
-    const application = await JobApply.findById(applicationId);
+    const application = await JobApply.findById(applicationId);    
+
     // Ensure application exists and belongs to candidate
-    if (!application || application.candidate.toString() !== candidateId) {
+    if (!application || !application.candidate.equals(candidateId)) {
       throw new NotFoundError('Application not found or not yours');
     }
 
+     // fetch job post
+    const job = await JobPost.findById(application.jobPost);
+
+    // console.log("testttttttttttttt", job);
     await application.deleteOne();
+
+     // update job counters safely
+    if (job) {
+      job.applicantCount = Math.max(0, job.applicantCount - 1);
+      job.positions.remaining += 1;
+
+      // reopen job if it was closed
+      if (job.status === 'Closed') {
+        job.status = 'Published';
+      }
+
+      await job.save();
+    }
 
     return res.status(200).json({
       success: true,

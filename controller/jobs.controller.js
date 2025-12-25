@@ -56,6 +56,10 @@ jobsController.createJobPost = async (req, res, next) => {
       throw new BadRequestError('At least one specialism is required');
     }
 
+    if (!positions || Number(positions) < 1) {
+      throw new BadRequestError('Positions must be at least 1');
+    }
+
     // Check if employer has a company profile
     const companyProfileDoc = await CompanyProfile.findOne({ employer: employerId });
     if (!companyProfileDoc) {
@@ -88,6 +92,10 @@ jobsController.createJobPost = async (req, res, next) => {
         country: location.country,
         city: location.city,
         completeAddress: location.completeAddress,
+      },
+      positions: {
+        total: Number(positions),
+        remaining: Number(positions),
       },
       remoteWork: remoteWork || 'On-site', // Default to On-site
       status: 'Published', // Default to Published
@@ -210,6 +218,7 @@ jobsController.updateJobPost = async (req, res, next) => {
       applicationDeadline,
       location,
       status,
+      positions
     } = req.body;
 
     const jobPost = await jobs.findById(jobPostId);
@@ -269,6 +278,33 @@ jobsController.updateJobPost = async (req, res, next) => {
         completeAddress: parsedLocation.completeAddress || jobPost.location.completeAddress,
       };
     }
+
+    // POSITIONS UPDATE
+    if (positions !== undefined) {
+      const newTotal = Number(positions);
+
+      if (newTotal < jobPost.applicantCount) {
+        throw new BadRequestError(
+          `Positions cannot be less than applied count (${jobPost.applicantCount})`
+        );
+      }
+
+      const newRemaining = newTotal - jobPost.applicantCount;
+
+      updateData.positions = {
+        total: newTotal,
+        remaining: newRemaining,
+      };
+
+      if (newRemaining === 0) {
+        updateData.status = 'Closed';
+      } else if (jobPost.status === 'Closed') {
+        updateData.status = 'Published';
+      }
+    }
+
+    console.log("update-test", updateData);
+    
 
     // Update job post
     const updatedJobPost = await jobs.findByIdAndUpdate(

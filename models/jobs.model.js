@@ -77,6 +77,17 @@ const jobPostSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Application deadline is required'],
   },
+  positions: {
+    total: {
+      type: Number,
+      required: [true, 'Number of positions is required'],
+      min: 1,
+    },
+    remaining: {
+      type: Number,
+      default: 0,
+    },
+  },
   applicantCount: {
     type: Number,
     default: 0,
