@@ -109,6 +109,18 @@ const jobPostSchema = new mongoose.Schema({
     enum: ['Draft', 'Published', 'Closed'],
     default: 'Published',
   },
+  // for trending jobs
+  profileViews: { type: Number, default: 0 },
+  dailyViews: [{
+    date: String,
+    count: { type: Number, default: 0 },
+    unique: { type: Number, default: 0 } // optional: track unique daily
+  }],
+  uniqueViewers: [{
+    viewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    lastViewed: { type: Date, default: Date.now }
+  }],
+
 }, { timestamps: true });
 
 

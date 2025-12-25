@@ -8,6 +8,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import companyUpload from '../utils/fileUpload.js';  
 import normalizeBody from '../utils/normalizeBody.js';
 import trackView from '../middleware/trackView.js';
+import trackJobView from '../middleware/trackJobView.js';
 
 const employerRouter = Router();
 
@@ -39,7 +40,7 @@ employerRouter.post('/jobs/create', authenticate, authorize(['employer', 'admin'
 employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']),jobsController.getJobPosts);
 
 // Get a single job post for editing
-employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']),jobsController.getJobPost);
+employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'admin', 'superadmin', 'candidate']), trackJobView, jobsController.getJobPost);
 
 // Update a job post
 employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admin', 'superadmin']), companyUpload, normalizeBody, jobsController.updateJobPost);

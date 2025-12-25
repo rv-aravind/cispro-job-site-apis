@@ -39,18 +39,29 @@ candidateDashboardController.getDashboardStats = async (req, res, next) => {
     const startOfLastMonth = new Date(startOfMonth);
     startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
 
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
     const [
       appliedCount,
       savedCount,
       alertCount,
       thisMonthApps,
       lastMonthApps,
+      activeJobs,
+      jobsAddedToday
     ] = await Promise.all([
       JobApply.countDocuments({ candidate: candidateId }),
       SavedJob.countDocuments({ candidate: candidateId }),
       JobAlert.countDocuments({ candidate: candidateId, isActive: true }),
       JobApply.countDocuments({ candidate: candidateId, createdAt: { $gte: startOfMonth } }),
       JobApply.countDocuments({ candidate: candidateId, createdAt: { $gte: startOfLastMonth, $lt: startOfMonth } }),
+
+      JobPost.countDocuments({ status: 'Published' }),
+      JobPost.countDocuments({
+        status: 'Published',
+        createdAt: { $gte: todayStart }
+      })
     ]);
 
     // Profile completeness 
@@ -83,6 +94,8 @@ candidateDashboardController.getDashboardStats = async (req, res, next) => {
       profileCompleteness: completeness,
       applicationsThisMonth: thisMonthApps,
       applicationGrowth: growth,
+      activeJobs,
+      jobsAddedToday,
       lastUpdated: new Date(),
     };
 

@@ -713,6 +713,49 @@ candidateController.getRecommendedJobs = async (req, res, next) => {
   }
 };
 
+
+/**
+ * Get trending jobs (public, for non-logged-in)
+ * @route GET /api/candidate/trending-jobs?limit=10&page=1
+ * @access Public
+ */
+candidateController.getTrendingJobs = async (req, res, next) => {
+  try {
+    const { limit = 10, page = 1 } = req.query;
+
+    const jobs = await JobPost.find({ 
+      status: 'Published',
+      applicationDeadline: { $gte: new Date() }
+    })
+      .populate('companyProfile', 'companyName logo')
+      .sort({ applicantCount: -1, createdAt: -1 }) // Trending: high applies + recent
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    // Calculate trending score (views + applies * 2 + recency boost)
+    const scoredJobs = jobs.map(job => {
+      let score = (job.applicantCount * 2) + (job.profileViews || 0);
+      
+      // Recency boost: +50 if <1 week old
+      const ageDays = (Date.now() - new Date(job.createdAt)) / (1000 * 86400);
+      if (ageDays < 7) score += 50;
+      
+      return { 
+        job: job.toObject(), 
+        trendingScore: Math.min(Math.round(score / 10), 100) // Normalize 0-100
+      };
+    }).sort((a, b) => b.trendingScore - a.trendingScore);
+
+    res.status(200).json({
+      success: true,
+      trendingJobs: scoredJobs,
+      pagination: { page: parseInt(page), limit: parseInt(limit), total: jobs.length }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Helper: Cosine similarity using natural TF-IDF
 function getSimilarity(text1, text2) {
   if (!text1 || !text2) return 0;
