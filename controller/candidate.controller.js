@@ -409,13 +409,19 @@ candidateController.applyToJob = async (req, res, next) => {
     await newApplication.save();
 
     // decrement positions & increment applicantCount (NOTE: This is increamenting already in jobapply model (// Hook to increment applicantCount on save (commented now)))
-    jobPost.positions.remaining -= 1;
-    jobPost.applicantCount += 1;
+    // decrement remaining positions
+      jobPost.positions.remaining -= 1;
 
-    // auto-close job if no positions left
-    if (jobPost.positions.remaining === 0) {
-      jobPost.status = 'Closed';
-    }
+      // increment applicant count
+      jobPost.applicantCount += 1;
+
+      // auto close job
+      if (jobPost.positions.remaining === 0) {
+        jobPost.status = 'Closed';
+      }
+
+      // SAVE THE JOB POST 
+      await jobPost.save();
 
     return res.status(201).json({
       success: true,

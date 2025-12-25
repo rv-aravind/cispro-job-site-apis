@@ -210,7 +210,7 @@ dashboardController.getRecentActivity = async (req, res, next) => {
       .limit(limit)
       .select('candidate jobPost createdAt status');
 
-    console.log("test-activity", recentApps);
+    // console.log("test-activity", recentApps);
     
 
     const activities = recentApps.map(app => ({
