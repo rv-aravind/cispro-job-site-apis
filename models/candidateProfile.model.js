@@ -88,7 +88,14 @@ const candidateProfileSchema = new mongoose.Schema({
     required: [true, 'Job type is required'],
     enum: ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship', 'Temporary'],
   },
-  // candidateProfile.model.js – add these
+
+  // if employer saving the this candidate for future use
+  savedCount: {
+    type: Number,
+    default: 0,
+  },
+
+  // employer viewed count
   profileViews: {
     type: Number,
     default: 0

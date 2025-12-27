@@ -2140,3 +2140,105 @@ Response:
         "total": 8
     }
 }
+
+//Save Candidate to Talent Pool (Candidate-Level – New Feature)
+
+Route: POST /employer/saved-candidates/:candidateId
+
+{{local}}api/v1/employer-dashboard/saved-candidates/687b3ab5745d8f29bb6a1496 - POST 
+
+PAYLOAD:
+
+{
+  "notes": "Strong React skills, good communication",
+  "folder": "Frontend Developers"
+}
+
+Response:
+
+{
+    "success": true,
+    "message": "Candidate saved to talent pool",
+    "savedCandidate": {
+        "employer": "68ac9967d0d12b78d128cc96",
+        "candidate": "687b3ab5745d8f29bb6a1496",
+        "candidateProfile": "69061c3a555b8542180e2de8",
+        "notes": "Strong React skills, good communication",
+        "folder": "Frontend Developers",
+        "_id": "694fa052ab68441b67b16b5f",
+        "createdAt": "2025-12-27T09:01:06.317Z",
+        "updatedAt": "2025-12-27T09:01:06.317Z",
+        "__v": 0
+    }
+}
+
+Get Saved Candidates (Talent Pool):
+
+{{local}}api/v1/employer-dashboard/saved-candidates?folder=Frontend Developers&limit=5  -GET 
+
+Optional Query Params:
+
+folder=Frontend Developers
+search=React
+page=1&limit=10
+
+
+Response:
+
+{
+    "success": true,
+    "savedCandidates": [
+        {
+            "_id": "694fa052ab68441b67b16b5f",
+            "employer": "68ac9967d0d12b78d128cc96",
+            "candidate": {
+                "_id": "687b3ab5745d8f29bb6a1496",
+                "name": "rv",
+                "email": "avarvind3765@gmail.com"
+            },
+            "candidateProfile": {
+                "location": {
+                    "country": "India",
+                    "city": "Coimbatore",
+                    "completeAddress": "singanallur",
+                    "remoteWork": "Hybrid"
+                },
+                "_id": "69061c3a555b8542180e2de8",
+                "fullName": "aravinda s",
+                "jobTitle": "Senior DevOps Engineer",
+                "expectedSalary": "₹15-20 LPA",
+                "categories": [
+                    "IT",
+                    "Digital & Creative",
+                    "Engineering"
+                ],
+                "profilePhoto": "/uploads/candidate/b902a7d4-13df-46a7-ae46-2291fd4d0d1f.jpg"
+            },
+            "notes": "Strong React skills, good communication",
+            "folder": "Frontend Developers",
+            "createdAt": "2025-12-27T09:01:06.317Z",
+            "updatedAt": "2025-12-27T09:01:06.317Z",
+            "__v": 0
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "totalPages": 1,
+        "total": 1,
+        "limit": 5
+    }
+}
+
+
+Unsave Candidate from Talent Pool:
+
+Route: DELETE /employer/saved-candidates/:savedId
+
+{{local}}api/v1/employer-dashboard/saved-candidates/694fa052ab68441b67b16b5f - DELETE
+
+Response:
+
+{
+    "success": true,
+    "message": "Candidate removed from talent pool"
+}

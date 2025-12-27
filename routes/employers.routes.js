@@ -79,6 +79,15 @@ employerRouter.put('/applicants/:applicationId/unshortlist', authenticate, autho
 // Get shortlisted resumes
 employerRouter.get('/shortlisted-resumes', authenticate, authorize(['employer', 'admin', 'superadmin']), employerApplicantsController.getShortlistedResumes);
 
+// candidate save for future use
+// Save candidate profile
+employerRouter.post('/saved-candidates/save/:candidateId', authenticate, authorize(['employer']), employerController.saveCandidate);
+
+// Unsave candidate
+employerRouter.delete('/saved-candidates/:savedId', authenticate, authorize(['employer']), employerController.unsaveCandidate);
+
+// Get saved candidates (with filters)
+employerRouter.get('/saved-candidates', authenticate, authorize(['employer']), employerController.getSavedCandidates);
 
 // resume alert routes
 // Create resume alert

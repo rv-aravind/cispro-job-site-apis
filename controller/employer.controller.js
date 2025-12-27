@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import CompanyProfile from "../models/companyProfile.model.js";
+import CandidateProfile from "../models/candidateProfile.model.js";
+import SavedCandidate from "../models/savedCandidate.model.js";
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 import fs from 'fs';
 import path from 'path';
@@ -439,6 +441,111 @@ employerController.deleteCompanyProfile = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Company profile deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// employer.controller.js (add these)
+
+/**
+ * Save a candidate profile to employer's talent pool
+ * @route POST /api/employer/saved-candidates/:candidateId
+ */
+employerController.saveCandidate = async (req, res, next) => {
+  try {
+    const employerId = req.user.id;
+    const candidateId = req.params.candidateId;
+
+    const candidateProfile = await CandidateProfile.findOne({ candidate: candidateId });
+    if (!candidateProfile) throw new NotFoundError('Candidate not found');
+
+    const existingSave = await SavedCandidate.findOne({ employer: employerId, candidate: candidateId });
+    if (existingSave) throw new BadRequestError('Candidate already saved');
+
+    const newSave = new SavedCandidate({
+      employer: employerId,
+      candidate: candidateId,
+      candidateProfile: candidateProfile._id,
+      notes: req.body.notes || '',
+      folder: req.body.folder || 'General',
+    });
+
+    await newSave.save();
+
+    // Increment savedCount on profile
+    await CandidateProfile.updateOne({ _id: candidateProfile._id }, { $inc: { savedCount: 1 } });
+
+    res.status(201).json({
+      success: true,
+      message: 'Candidate saved to talent pool',
+      savedCandidate: newSave
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Unsave a candidate from talent pool
+ * @route DELETE /api/employer/saved-candidates/:savedId
+ */
+employerController.unsaveCandidate = async (req, res, next) => {
+  try {
+    const employerId = req.user.id;
+    const savedId = req.params.savedId;
+
+    console.log("testtttt", savedId);
+    
+
+    const saved = await SavedCandidate.findById(savedId);
+    if (!saved || saved.employer.toString() !== employerId.toString()) throw new NotFoundError('Saved candidate not found');
+
+    const candidateProfileId = saved.candidateProfile;
+
+    await saved.deleteOne();
+
+    // Decrement savedCount
+    await CandidateProfile.updateOne({ _id: candidateProfileId }, { $inc: { savedCount: -1 } });
+
+    res.status(200).json({
+      success: true,
+      message: 'Candidate removed from talent pool'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get employer's saved candidates with filters
+ * @route GET /api/employer/saved-candidates?folder=General&search=John&page=1&limit=10
+ */
+employerController.getSavedCandidates = async (req, res, next) => {
+  try {
+    const employerId = req.user.id;
+    const { folder, search, page = 1, limit = 10 } = req.query;
+
+    let query = { employer: employerId };
+    if (folder) query.folder = folder;
+
+    const total = await SavedCandidate.countDocuments(query);
+
+    const saved = await SavedCandidate.find(query)
+      .populate({
+        path: 'candidateProfile',
+        select: 'fullName jobTitle location profilePhoto expectedSalary categories'
+      })
+      .populate('candidate', 'name email')
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      savedCandidates: saved,
+      pagination: { page: parseInt(page), totalPages: Math.ceil(total / limit), total, limit: parseInt(limit) }
     });
   } catch (error) {
     next(error);
