@@ -265,4 +265,101 @@ const sendResumeAlertEmail = async ({
   }
 };
 
-export { sendJobAlertEmail, sendResumeAlertEmail, sendPasswordResetEmail };
+
+// Send welcome email to new user
+const sendWelcomeEmail = async ({ recipient, name }) => {
+  try {
+    if (!recipient) throw new Error('Recipient email is missing');
+
+    const mailOptions = {
+      from: `"Welcome to Coimbatore Jobs" <${process.env.EMAIL_USER}>`,
+      to: recipient,
+      subject: 'Welcome to Coimbatore Jobs - Your Registration is Successful!',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b;">
+          <h2 style="color: #2563eb;">Welcome, ${name}!</h2>
+          
+          <p>Thank you for registering with <strong>Coimbatore Jobs</strong>. Your account has been successfully created.</p>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>What’s Next?</strong></p>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li>Complete your profile to get better job matches</li>
+              <li>Browse and apply to jobs in Coimbatore</li>
+              <li>Set up job alerts for personalized notifications</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL}/dashboard" 
+               style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+              Go to Dashboard
+            </a>
+          </div>
+          
+          <p>If you have any questions, our support team is here to help at support@coimbatorejobs.com.</p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;" />
+          
+          <p style="color: #64748b; font-size: 12px; text-align: center;">
+            &copy; ${new Date().getFullYear()} Coimbatore Jobs by Cispro. All rights reserved.<br />
+            This is an automated message — please do not reply.
+          </p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Welcome email sent to ${recipient}`);
+  } catch (error) {
+    console.error(`Failed to send welcome email to ${recipient}:`, error);
+  }
+};
+
+// Send alert to superadmin on new registration
+const sendSuperadminAlertEmail = async ({ superadminEmail, newUserEmail, newUserRole }) => {
+  try {
+    if (!superadminEmail) throw new Error('Superadmin email not configured');
+
+    const mailOptions = {
+      from: `"System Alert" <${process.env.EMAIL_USER}>`,
+      to: superadminEmail,
+      subject: 'New User Registration Alert',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b;">
+          <h2 style="color: #ef4444;">New User Registered</h2>
+          
+          <p>A new user has registered on Coimbatore Jobs:</p>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Email:</strong> ${newUserEmail}</p>
+            <p><strong>Role:</strong> ${newUserRole.charAt(0).toUpperCase() + newUserRole.slice(1)}</p>
+            <p><strong>Registration Time:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL}/admin/users" 
+               style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+              View Users Dashboard
+            </a>
+          </div>
+          
+          <p>This is an automated alert for monitoring purposes.</p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;" />
+          
+          <p style="color: #64748b; font-size: 12px; text-align: center;">
+            &copy; ${new Date().getFullYear()} Coimbatore Jobs by Cispro. All rights reserved.
+          </p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Superadmin alert sent for new user ${newUserEmail}`);
+  } catch (error) {
+    console.error(`Failed to send superadmin alert:`, error);
+  }
+};
+
+export { sendJobAlertEmail, sendResumeAlertEmail, sendPasswordResetEmail, sendWelcomeEmail, sendSuperadminAlertEmail };

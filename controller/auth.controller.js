@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
-import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env.js";
+import { JWT_SECRET, JWT_EXPIRES_IN, SUPERADMIN_EMAIL, THROTTLING_RETRY_DELAY_BASE } from "../config/env.js";
 import crypto from 'crypto';
-import { sendPasswordResetEmail } from '../utils/mailer.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, sendSuperadminAlertEmail } from '../utils/mailer.js';
 
 // Authentication controller object
 const authentication = {};
@@ -54,6 +54,16 @@ authentication.signup = async (req, res, next) => {
         // Commit transaction and end session
         await session.commitTransaction();
         session.endSession();
+
+        // Send welcome email to new user
+        await sendWelcomeEmail({ recipient: email, name });
+
+        // Send alert to superadmin
+        await sendSuperadminAlertEmail({ 
+          superadminEmail: SUPERADMIN_EMAIL, 
+          newUserEmail: email, 
+          newUserRole: safeRole 
+        });
 
         // Send success response
         return res.status(201).json({
