@@ -48,6 +48,8 @@ employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'admi
 // Delete a job post
 employerRouter.delete('/jobs/delete/:id',authenticate, authorize(['employer', 'admin', 'superadmin']),jobsController.deleteJobPost);
 
+// Get active jobs posted by a specific employer (public)
+employerRouter.get('/company/:id/jobs', employerController.getActiveJobsByEmployer);
 
 
 // Get applicants for a specific job post

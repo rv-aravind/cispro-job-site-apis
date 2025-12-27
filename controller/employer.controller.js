@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import CompanyProfile from "../models/companyProfile.model.js";
 import CandidateProfile from "../models/candidateProfile.model.js";
 import SavedCandidate from "../models/savedCandidate.model.js";
+import JobPost from "../models/jobs.model.js";
 import { ForbiddenError, BadRequestError, NotFoundError } from "../utils/errors.js";
 import fs from 'fs';
 import path from 'path';
@@ -344,9 +345,17 @@ employerController.getCompanyProfile = async (req, res, next) => {
       throw new NotFoundError('Company profile not found');
     }
 
+    // Count active jobs for this company
+    const activeJobsCount = await JobPost.countDocuments({
+      companyProfile: profileId,
+      status: 'Published',
+      applicationDeadline: { $gte: new Date() }
+    });
+
     return res.status(200).json({
       success: true,
-      profile
+      profile,
+      activeJobsCount
     });
   } catch (error) {
     next(error);
@@ -546,6 +555,57 @@ employerController.getSavedCandidates = async (req, res, next) => {
       success: true,
       savedCandidates: saved,
       pagination: { page: parseInt(page), totalPages: Math.ceil(total / limit), total, limit: parseInt(limit) }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/**
+ * Get all active (Published) jobs posted by a specific employer/company
+ * @route GET /api/employer-dashboard/company/:id/jobs?limit=10&page=1
+ * @access Public
+ */
+employerController.getActiveJobsByEmployer = async (req, res, next) => {
+  try {
+    const companyId = req.params.id;
+
+    // Validate company exists
+    const company = await CompanyProfile.findById(companyId);
+    if (!company) {
+      throw new NotFoundError('Company not found');
+    }
+
+    const { limit = 10, page = 1 } = req.query;
+
+    const jobs = await JobPost.find({
+      companyProfile: companyId,
+      status: 'Published',
+      applicationDeadline: { $gte: new Date() }
+    })
+      .select('title location jobType offeredSalary positions remoteWork createdAt')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await JobPost.countDocuments({
+      companyProfile: companyId,
+      status: 'Published',
+      applicationDeadline: { $gte: new Date() }
+    });
+
+    res.status(200).json({
+      success: true,
+      companyName: company.companyName,
+      totalJobs: total,
+      jobs,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        total,
+        limit: parseInt(limit)
+      }
     });
   } catch (error) {
     next(error);

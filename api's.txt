@@ -2182,7 +2182,6 @@ folder=Frontend Developers
 search=React
 page=1&limit=10
 
-
 Response:
 
 {
@@ -2241,4 +2240,60 @@ Response:
 {
     "success": true,
     "message": "Candidate removed from talent pool"
+}
+
+Get Active Jobs for the employer
+
+Route: GET /employer-dashboard/company/:companyProfileId/jobs
+
+{{local}}api/v1/employer-dashboard/company/6894ec6b55908eb75da0745f/jobs?limit=10&page=1 - GET 
+
+Response:
+
+{
+    "success": true,
+    "companyName": "National Employment Board",
+    "totalJobs": 2,
+    "jobs": [
+        {
+            "positions": {
+                "total": 55,
+                "remaining": 54
+            },
+            "location": {
+                "country": "India",
+                "city": "coimbatore",
+                "completeAddress": "adyar"
+            },
+            "_id": "694ce251baccd202853d2b22",
+            "title": "test-recom-job-2",
+            "jobType": "Part-time",
+            "offeredSalary": "₹5-10 LPA",
+            "remoteWork": "Hybrid",
+            "createdAt": "2025-12-25T07:05:53.176Z"
+        },
+        {
+            "positions": {
+                "total": 45,
+                "remaining": 44
+            },
+            "location": {
+                "country": "india",
+                "city": "coimbatore",
+                "completeAddress": "singanallur, coimbatore"
+            },
+            "_id": "694cde8dbaccd202853d2b01",
+            "title": "test-2-recommenation",
+            "jobType": "Full-time",
+            "offeredSalary": "₹5-10 LPA",
+            "remoteWork": "On-site",
+            "createdAt": "2025-12-25T06:49:49.287Z"
+        }
+    ],
+    "pagination": {
+        "currentPage": 1,
+        "totalPages": 1,
+        "total": 2,
+        "limit": 10
+    }
 }
