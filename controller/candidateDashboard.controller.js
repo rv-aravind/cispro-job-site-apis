@@ -130,7 +130,7 @@ candidateDashboardController.getProfileViewsData = async (req, res, next) => {
       const key = `${year}-${month}`;
       const monthName = date.toLocaleString('default', { month: 'long' });
 
-      // ✅ FIX: aggregate ALL days of the month
+      // aggregate ALL days of the month
       const monthEntries = profile.dailyViews.filter(d =>
         d.date.startsWith(key)
       );
