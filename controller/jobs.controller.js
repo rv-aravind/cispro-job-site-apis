@@ -30,6 +30,7 @@ jobsController.createJobPost = async (req, res, next) => {
       applicationDeadline,
       location,
       remoteWork,
+      positions,
       companyProfile, // Added to allow explicit selection if needed
     } = req.body;
 
@@ -56,7 +57,7 @@ jobsController.createJobPost = async (req, res, next) => {
       throw new BadRequestError('At least one specialism is required');
     }
 
-    if (!positions || Number(positions) < 1) {
+   if (!positions || !positions.total || Number(positions.total) < 1) {
       throw new BadRequestError('Positions must be at least 1');
     }
 
@@ -94,8 +95,8 @@ jobsController.createJobPost = async (req, res, next) => {
         completeAddress: location.completeAddress,
       },
       positions: {
-        total: Number(positions),
-        remaining: Number(positions),
+        total: Number(positions.total),
+        remaining: Number(positions.total),
       },
       remoteWork: remoteWork || 'On-site', // Default to On-site
       status: 'Published', // Default to Published
