@@ -2615,3 +2615,369 @@ Response:
     },
     "activeJobsCount": 0
 }
+
+
+//Jobs Create 
+
+(hr-admin)
+http://localhost:5000/api/v1/employer-dashboard/jobs/create  -POST 
+
+Authorization : hr-admin token
+
+Payload:
+
+{
+  "employerId": "694906a331477526c0c36815",
+  "title": "Frontend Engineer (React)",
+  "description": "Hiring React developers for product team.",
+  "contactEmail": "jobs@company.com",
+  "contactUsername": "recruitment",
+  "specialisms": ["React", "JavaScript", "UI"],
+  "jobType": "Full-time",
+  "offeredSalary": "₹10-15 LPA",
+  "careerLevel": "Mid Level",
+  "experience": "3-5 years",
+  "industry": "Software",
+  "qualification": "Bachelor",
+  "applicationDeadline": "2026-02-15",
+  "remoteWork": "Remote",
+  "positions": {
+    "total": 5
+  },
+  "location": {
+    "country": "India",
+    "city": "Chennai",
+    "completeAddress": "Tidel Park, Chennai"
+  }
+}
+
+Success Response : 201
+
+{
+    "success": true,
+    "message": "Job post created successfully",
+    "jobPost": {
+        "employer": "694906a331477526c0c36815",
+        "companyProfile": "6956b70a754792a318b77892",
+        "title": "Frontend Engineer (React)",
+        "description": "Hiring React developers for product team.",
+        "contactEmail": "jobs@company.com",
+        "contactUsername": "recruitment",
+        "specialisms": [
+            "React",
+            "JavaScript",
+            "UI"
+        ],
+        "jobType": "Full-time",
+        "offeredSalary": "₹10-15 LPA",
+        "careerLevel": "Mid Level",
+        "experience": "3-5 years",
+        "gender": "No Preference",
+        "industry": "Software",
+        "qualification": "Bachelor",
+        "applicationDeadline": "2026-02-15T00:00:00.000Z",
+        "positions": {
+            "total": 5,
+            "remaining": 5
+        },
+        "applicantCount": 0,
+        "location": {
+            "country": "India",
+            "city": "Chennai",
+            "completeAddress": "Tidel Park, Chennai"
+        },
+        "remoteWork": "Remote",
+        "status": "Published",
+        "profileViews": 0,
+        "postedBy": "695661cb81b115f60d58f4d2",
+        "_id": "695806561a53581c0d12c434",
+        "dailyViews": [],
+        "uniqueViewers": [],
+        "createdAt": "2026-01-02T17:54:30.024Z",
+        "updatedAt": "2026-01-02T17:54:30.024Z",
+        "__v": 0
+    }
+}
+
+
+
+(employer)
+http://localhost:5000/api/v1/employer-dashboard/jobs/create  -POST 
+
+Authorization : employer token
+
+Payload:
+
+{
+  "title": "Senior Backend Developer",
+  "description": "We are looking for an experienced Node.js backend developer.",
+  "contactEmail": "hr@company.com",
+  "contactUsername": "hr-team",
+  "specialisms": ["Node.js", "MongoDB", "API Development"],
+  "jobType": "Full-time",
+  "offeredSalary": "₹20-30 LPA",
+  "careerLevel": "Senior Level",
+  "experience": "5-10 years",
+  "gender": "No Preference",
+  "industry": "IT Services",
+  "qualification": "Bachelor",
+  "applicationDeadline": "2026-03-31",
+  "remoteWork": "Hybrid",
+  "positions": {
+    "total": 3
+  },
+  "location": {
+    "country": "India",
+    "city": "Bangalore",
+    "completeAddress": "Whitefield, Bangalore"
+  }
+}
+
+
+// failure response :
+
+{
+    "success": false,
+    "message": "Company profile must be approved before posting jobs"
+}
+
+//success response: 
+
+{
+    "success": true,
+    "message": "Job post created successfully",
+    "jobPost": {
+        "employer": "68ac9967d0d12b78d128cc96",
+        "companyProfile": "6894ec6b55908eb75da0745f",
+        "title": "Senior Backend Developer",
+        "description": "We are looking for an experienced Node.js backend developer.",
+        "contactEmail": "hr@company.com",
+        "contactUsername": "hr-team",
+        "specialisms": [
+            "Node.js",
+            "MongoDB",
+            "API Development"
+        ],
+        "jobType": "Full-time",
+        "offeredSalary": "₹20-30 LPA",
+        "careerLevel": "Senior Level",
+        "experience": "5-10 years",
+        "gender": "No Preference",
+        "industry": "IT Services",
+        "qualification": "Bachelor",
+        "applicationDeadline": "2026-03-31T00:00:00.000Z",
+        "positions": {
+            "total": 3,
+            "remaining": 3
+        },
+        "applicantCount": 0,
+        "location": {
+            "country": "India",
+            "city": "Bangalore",
+            "completeAddress": "Whitefield, Bangalore"
+        },
+        "remoteWork": "Hybrid",
+        "status": "Published",
+        "profileViews": 0,
+        "postedBy": "68ac9967d0d12b78d128cc96",
+        "_id": "6958095d1a53581c0d12c48c",
+        "dailyViews": [],
+        "uniqueViewers": [],
+        "createdAt": "2026-01-02T18:07:25.656Z",
+        "updatedAt": "2026-01-02T18:07:25.656Z",
+        "__v": 0
+    }
+}
+
+
+//fetch Jobs 
+
+(hr-admin)
+http://localhost:5000/api/v1/employer-dashboard/jobs/fetch-all - GET 
+
+Authorization : hr-admin token 
+
+response: 
+
+{
+    "success": true,
+    "jobPosts": [
+        {
+            "location": {
+                "country": "India",
+                "city": "Chennai",
+                "completeAddress": "Tidel Park, Chennai"
+            },
+            "_id": "695806561a53581c0d12c434",
+            "employer": "694906a331477526c0c36815",
+            "companyProfile": {
+                "_id": "6956b70a754792a318b77892",
+                "companyName": "Cispro Technologies",
+                "logo": "/uploads/company/c3317f22-cdb6-4289-8ce8-0afe2a5836a5.jpg",
+                "id": "6956b70a754792a318b77892"
+            },
+            "title": "Frontend Engineer (React)",
+            "applicationDeadline": "2026-02-15T00:00:00.000Z",
+            "applicantCount": 0,
+            "status": "Published",
+            "createdAt": "2026-01-02T17:54:30.024Z"
+        }
+    ]
+}
+
+
+//Get Single job post 
+
+//ID is job post id
+http://localhost:5000/api/v1/employer-dashboard/jobs/fetch/695806561a53581c0d12c434 - GET 
+
+Authorization : any 
+
+Response: 
+
+{
+    "success": true,
+    "jobPost": {
+        "positions": {
+            "total": 5,
+            "remaining": 5
+        },
+        "location": {
+            "country": "India",
+            "city": "Chennai",
+            "completeAddress": "Tidel Park, Chennai"
+        },
+        "_id": "695806561a53581c0d12c434",
+        "employer": "694906a331477526c0c36815",
+        "companyProfile": {
+            "_id": "6956b70a754792a318b77892",
+            "companyName": "Cispro Technologies",
+            "logo": "/uploads/company/c3317f22-cdb6-4289-8ce8-0afe2a5836a5.jpg",
+            "id": "6956b70a754792a318b77892"
+        },
+        "title": "Frontend Engineer (React)",
+        "description": "Hiring React developers for product team.",
+        "contactEmail": "jobs@company.com",
+        "contactUsername": "recruitment",
+        "specialisms": [
+            "React",
+            "JavaScript",
+            "UI"
+        ],
+        "jobType": "Full-time",
+        "offeredSalary": "₹10-15 LPA",
+        "careerLevel": "Mid Level",
+        "experience": "3-5 years",
+        "gender": "No Preference",
+        "industry": "Software",
+        "qualification": "Bachelor",
+        "applicationDeadline": "2026-02-15T00:00:00.000Z",
+        "remoteWork": "Remote",
+        "status": "Published",
+        "profileViews": 1,
+        "postedBy": "695661cb81b115f60d58f4d2",
+        "dailyViews": [
+            {
+                "date": "2026-01-02",
+                "count": 1,
+                "unique": 1,
+                "_id": "69580e1c86c9e31dcf647696"
+            }
+        ],
+        "uniqueViewers": [
+            {
+                "viewer": "695661cb81b115f60d58f4d2",
+                "lastViewed": "2026-01-02T18:27:40.597Z",
+                "_id": "69580e1c86c9e31dcf647695"
+            }
+        ],
+        "createdAt": "2026-01-02T17:54:30.024Z",
+        "updatedAt": "2026-01-02T18:27:40.597Z"
+    }
+}
+
+
+//Update Job post: 
+
+PUT /jobs/update/:jobId
+http://localhost:5000/api/v1/employer-dashboard/jobs/update/695806561a53581c0d12c434 - PUT
+
+//payload 
+
+{
+  "title": "Lead Backend Engineer",
+  "positions": {
+    "total": 4
+  }
+}
+
+
+//response 
+
+{
+    "success": true,
+    "message": "Job post updated successfully",
+    "jobPost": {
+        "positions": {
+            "total": 4,
+            "remaining": 4
+        },
+        "location": {
+            "country": "India",
+            "city": "Chennai",
+            "completeAddress": "Tidel Park, Chennai"
+        },
+        "_id": "695806561a53581c0d12c434",
+        "employer": "694906a331477526c0c36815",
+        "companyProfile": "6956b70a754792a318b77892",
+        "title": "Lead Backend Engineer",
+        "description": "Hiring React developers for product team.",
+        "contactEmail": "jobs@company.com",
+        "contactUsername": "recruitment",
+        "specialisms": [
+            "React",
+            "JavaScript",
+            "UI"
+        ],
+        "jobType": "Full-time",
+        "offeredSalary": "₹10-15 LPA",
+        "careerLevel": "Mid Level",
+        "experience": "3-5 years",
+        "gender": "No Preference",
+        "industry": "Software",
+        "qualification": "Bachelor",
+        "applicationDeadline": "2026-02-15T00:00:00.000Z",
+        "remoteWork": "Remote",
+        "status": "Published",
+        "profileViews": 1,
+        "postedBy": "695661cb81b115f60d58f4d2",
+        "dailyViews": [
+            {
+                "date": "2026-01-02",
+                "count": 1,
+                "unique": 1,
+                "_id": "69580e1c86c9e31dcf647696"
+            }
+        ],
+        "uniqueViewers": [
+            {
+                "viewer": "695661cb81b115f60d58f4d2",
+                "lastViewed": "2026-01-02T18:27:40.597Z",
+                "_id": "69580e1c86c9e31dcf647695"
+            }
+        ],
+        "createdAt": "2026-01-02T17:54:30.024Z",
+        "updatedAt": "2026-01-02T18:32:16.998Z"
+    }
+}
+
+//delete the job post 
+
+DELETE /jobs/delete/:jobId
+
+Response:
+
+{
+    "success": true,
+    "message": "Job post deleted successfully"
+}

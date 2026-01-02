@@ -37,7 +37,7 @@ employerRouter.delete('/company-profile/delete/:id',authenticate,authorizeEmploy
 // post job
 
 // Route to create a job post (accessible to employers, admins, and superadmins)
-employerRouter.post('/jobs/create', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), companyUpload, normalizeBody, jobsController.createJobPost);  //we have added companyUpload to handle file uploads for job posts and normalizeBody to handle FormData parsing
+employerRouter.post('/jobs/create', authenticate, authorizeEmployerLike(), companyUpload, normalizeBody, jobsController.createJobPost);  //we have added companyUpload to handle file uploads for job posts and normalizeBody to handle FormData parsing
 
 // Get all job posts (filtered by employer for non-superadmins)
 employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'hr-admin', 'superadmin', 'candidate']),jobsController.getJobPosts);
@@ -46,10 +46,10 @@ employerRouter.get('/jobs/fetch-all', authenticate, authorize(['employer', 'hr-a
 employerRouter.get('/jobs/fetch/:id',authenticate, authorize(['employer', 'hr-admin', 'superadmin', 'candidate']), trackJobView, jobsController.getJobPost);
 
 // Update a job post
-employerRouter.put('/jobs/update/:id',authenticate, authorize(['employer', 'hr-admin', 'superadmin']), companyUpload, normalizeBody, jobsController.updateJobPost);
+employerRouter.put('/jobs/update/:id',authenticate, authorizeEmployerLike(), companyUpload, normalizeBody, jobsController.updateJobPost);
 
 // Delete a job post
-employerRouter.delete('/jobs/delete/:id',authenticate, authorize(['employer', 'hr-admin', 'superadmin']),jobsController.deleteJobPost);
+employerRouter.delete('/jobs/delete/:id',authenticate, authorizeEmployerLike(),jobsController.deleteJobPost);
 
 // Get active jobs posted by a specific employer (public)
 employerRouter.get('/company/:id/jobs', employerController.getActiveJobsByEmployer);

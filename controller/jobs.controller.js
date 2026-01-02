@@ -13,7 +13,44 @@ const jobsController = {};
  */
 jobsController.createJobPost = async (req, res, next) => {
   try {
-    const employerId = req.user.id;
+
+    // Extract employer ID from authenticated user
+    const { id: loggedInUserId, role } = req.user;
+
+    /**
+     * Resolve employerId & companyProfile
+     * -----------------------------------
+     * employer     → own company only
+     * hr-admin     → must pass employerId
+     * superadmin   → must pass employerId
+     */
+
+    let employerId = loggedInUserId;
+
+    // For hr-admin and superadmin, employerId must be provided in body
+    if (['hr-admin', 'superadmin'].includes(role)) {
+      if (!req.body.employerId) {
+        throw new BadRequestError('employerId is required for HR-Admin or Superadmin');
+      }
+      employerId = req.body.employerId;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(employerId)) {
+      throw new BadRequestError('Invalid employerId');
+    }
+
+    /**
+     * Validate company profile
+     */
+    const companyProfileDoc = await CompanyProfile.findOne({ employer: employerId });
+    if (!companyProfileDoc) {
+      throw new NotFoundError('Company profile not found for this employer, Please create a company profile first.');
+    }
+
+    if (companyProfileDoc.status !== 'approved') {
+      throw new ForbiddenError('Company profile must be approved before posting jobs');
+    }
+
     const {
       title,
       description,
@@ -61,11 +98,6 @@ jobsController.createJobPost = async (req, res, next) => {
       throw new BadRequestError('Positions must be at least 1');
     }
 
-    // Check if employer has a company profile
-    const companyProfileDoc = await CompanyProfile.findOne({ employer: employerId });
-    if (!companyProfileDoc) {
-      throw new NotFoundError('Company profile not found. Please create a company profile first.');
-    }
 
     // Validate companyProfile if provided explicitly
     if (companyProfile && !mongoose.Types.ObjectId.isValid(companyProfile)) {
@@ -74,7 +106,7 @@ jobsController.createJobPost = async (req, res, next) => {
 
     // Create new job post
     const newJobPost = new jobs({
-      employer: companyOwnerId,        // the actual company owner
+      employer: employerId,        // the actual company owner
       postedBy: req.user.id,           // who is posting (employer or hr-admin)
       companyProfile: companyProfile || companyProfileDoc._id, // Use provided ID or default to employer’s profile
       title,
@@ -126,24 +158,22 @@ jobsController.createJobPost = async (req, res, next) => {
 jobsController.getJobPosts = async (req, res, next) => {
   try {
     const user = req.user;
-    const loggedInUserId = user.id;
-    const isSuperAdmin = user.role === 'superadmin';
+    const { role, id: userId } = user; 
 
     // Build base query
     let query = {};
 
-    // Restrict to employer's own job posts unless superadmin
-    if (!isSuperAdmin) {
-      // query.employer = new mongoose.Types.ObjectId(loggedInUserId);
-      query.employer = loggedInUserId;
+    // Restrict to employer's own job posts unless superadmin, hr-admin
+    if (user.role === 'employer') {
+      // Employer → jobs of their company
+      query.employer = userId;
+    }
+
+    if (user.role === 'hr-admin') {
+      // HR-Admin → jobs they posted
+      query.postedBy = userId;
     }
     
-    // console.log("Query for job posts:", query);
-
-    // const jobPosts = await jobs.find(query)
-    //   .populate('companyProfile', 'companyName logo')
-    //    .select('-__v applicantCount')
-    //   .sort({ createdAt: -1 });
 
     // Query and populate related company profile (only name and logo)
     const jobPosts = await jobs.find(query)
@@ -229,8 +259,12 @@ jobsController.updateJobPost = async (req, res, next) => {
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
-      throw new ForbiddenError('You do not have permission to update this job post');
+    const isOwner = jobPost.employer.toString() === user.id.toString();
+    const isPoster = jobPost.postedBy.toString() === user.id.toString();
+    const isAdmin = ['hr-admin', 'superadmin'].includes(user.role);
+
+    if (!isOwner && !isPoster && !isAdmin) {
+      throw new ForbiddenError('You do not have permission to modify this job post');
     }
 
     // Parse specialisms if string
@@ -355,8 +389,12 @@ jobsController.deleteJobPost = async (req, res, next) => {
     }
 
     // Check permissions
-    if (user.role !== 'superadmin' && jobPost.employer.toString() !== user.id.toString()) {
-      throw new ForbiddenError('You do not have permission to delete this job post');
+    const isOwner = jobPost.employer.toString() === user.id.toString();
+    const isPoster = jobPost.postedBy.toString() === user.id.toString();
+    const isAdmin = ['hr-admin', 'superadmin'].includes(user.role);
+
+    if (!isOwner && !isPoster && !isAdmin) {
+      throw new ForbiddenError('You do not have permission to modify this job post');
     }
 
     // Delete job post
