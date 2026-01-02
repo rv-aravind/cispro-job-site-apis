@@ -74,7 +74,8 @@ jobsController.createJobPost = async (req, res, next) => {
 
     // Create new job post
     const newJobPost = new jobs({
-      employer: employerId,
+      employer: companyOwnerId,        // the actual company owner
+      postedBy: req.user.id,           // who is posting (employer or hr-admin)
       companyProfile: companyProfile || companyProfileDoc._id, // Use provided ID or default to employer’s profile
       title,
       description,

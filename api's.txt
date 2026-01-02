@@ -2297,3 +2297,321 @@ Response:
         "limit": 10
     }
 }
+
+// Company profile creation - (hr-admin, employer)
+// hr-admin can create multiple company profile for multiple employers
+// employer can create only one company profilr for their company
+
+POST /api/v1/employer/company-profile/create
+Authorization: Bearer <TOKEN>  - hr-admin, employer 
+Content-Type: multipart/form-data, json 
+
+
+Sample payload:
+
+{
+  "companyName": "Cispro Technologies",
+  "companyType": "Private",
+  "email": "info@cisprotech.com",
+  "phone": "9876543210",
+  "website": "https://www.cisprotech.com",
+  "establishedSince": "2016-06-15",
+  "teamSize": "50 - 100",
+  "categories": ["Technology", "Recruitment"],
+  "industry": "Information Technology",
+  "allowInSearch": true,
+  "isHiring": true,
+  "description": "Cispro Technologies is a leading IT solutions and recruitment platform delivering enterprise-grade software and talent solutions.",
+  "socialMedia": {
+    "facebook": "https://facebook.com/cisprotech",
+    "twitter": "https://twitter.com/cisprotech",
+    "linkedin": "https://linkedin.com/company/cisprotech",
+    "instagram": "https://instagram.com/cisprotech"
+  },
+  "location": {
+    "address": "No. 12, Tech Park Road",
+    "city": "Coimbatore",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "zipCode": "641001"
+  },
+  "culture": ["Innovative", "Collaborative", "Work-life balance"],
+  "revenue": "$1M - $10M",
+  "founders": [
+    {
+      "name": "Aravind Kumar",
+      "role": "Founder & CEO",
+      "linkedin": "https://linkedin.com/in/aravindkumar"
+    }
+  ],
+  "branches": [
+    {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "country": "India"
+    },
+    {
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "country": "India"
+    }
+  ]
+}
+
+Failure response: 400
+
+{
+    "success": false,
+    "message": "Employer is not approved yet"
+}
+
+{
+    "success": false,
+    "message": "Company profile already exists for this employer"
+}
+
+Success response:
+
+{
+    "success": true,
+    "message": "Company profile created successfully",
+    "profile": {
+        "employer": "694906a331477526c0c36815",
+        "createdBy": "695661cb81b115f60d58f4d2",
+        "companyName": "Cispro Technologies",
+        "companyType": "Private",
+        "email": "info@cisprotech.com",
+        "phone": "9876543210",
+        "website": "https://www.cisprotech.com",
+        "establishedSince": "2016-06-15T00:00:00.000Z",
+        "teamSize": "50 - 100",
+        "categories": [
+            "Technology",
+            "Recruitment"
+        ],
+        "industry": "Information Technology",
+        "allowInSearch": true,
+        "isHiring": true,
+        "isVerified": false,
+        "description": "Cispro Technologies is a leading IT solutions and recruitment platform delivering enterprise-grade software and talent solutions.",
+        "profileViews": 0,
+        "status": "approved",
+        "approvedBy": "695661cb81b115f60d58f4d2",
+        "approvedAt": "2026-01-01T18:03:53.997Z",
+        "culture": [
+            "Innovative",
+            "Collaborative",
+            "Work-life balance"
+        ],
+        "revenue": "$1M - $10M",
+        "founders": [
+            {
+                "name": "Sathish Kumar",
+                "role": "Founder & CEO",
+                "linkedin": "https://linkedin.com/in/sathishkumar",
+                "_id": "6956b70a754792a318b77893",
+                "id": "6956b70a754792a318b77893"
+            }
+        ],
+        "socialMedia": {
+            "facebook": "https://facebook.com/cisprotech",
+            "twitter": "https://twitter.com/cisprotech",
+            "linkedin": "https://linkedin.com/company/cisprotech",
+            "instagram": "https://instagram.com/cisprotech"
+        },
+        "location": {
+            "address": "No. 12, Tech Park Road",
+            "city": "Coimbatore",
+            "state": "Tamil Nadu",
+            "country": "India",
+            "zipCode": "641001"
+        },
+        "branches": [
+            {
+                "city": "Bangalore",
+                "state": "Karnataka",
+                "country": "India",
+                "_id": "6956b70a754792a318b77894",
+                "id": "6956b70a754792a318b77894"
+            },
+            {
+                "city": "Hyderabad",
+                "state": "Telangana",
+                "country": "India",
+                "_id": "6956b70a754792a318b77895",
+                "id": "6956b70a754792a318b77895"
+            }
+        ],
+        "logo": "/uploads/company/c3317f22-cdb6-4289-8ce8-0afe2a5836a5.jpg",
+        "ratings": {
+            "average": 0,
+            "count": 0
+        },
+        "_id": "6956b70a754792a318b77892",
+        "dailyViews": [],
+        "uniqueViewers": [],
+        "id": "6956b70a754792a318b77892"
+    }
+}
+
+
+//fetch employers and candidate API 
+
+{{local}}api/v1/auth/users?roles=employer - GET 
+
+Authorization : hr-admin or superadmin token 
+
+Response:
+
+{
+    "success": true,
+    "count": 14,
+    "data": [
+        {
+            "status": "pending",
+            "_id": "694f74a252e1378ffe8d9df3",
+            "name": "Coimbatorejobs 2025",
+            "email": "coimbatorejobs2025@gmail.com",
+            "role": "candidate",
+            "isActive": true,
+            "createdAt": "2025-12-27T05:54:42.562Z",
+            "updatedAt": "2025-12-27T05:54:42.562Z",
+            "__v": 0
+        },
+        {
+            "status": "pending",
+            "_id": "694a408413904053a0865d85",
+            "name": "cisprotraining",
+            "email": "cisprodm@gmail.com",
+            "role": "candidate",
+            "isActive": true,
+            "createdAt": "2025-12-23T07:11:00.152Z",
+            "updatedAt": "2025-12-23T07:11:00.152Z",
+            "__v": 0
+        },
+        {
+            "status": "pending",
+            "_id": "69493f31925e565dfb6a220f",
+            "name": "cisprotraining",
+            "email": "blog@cisprotraining.com",
+            "role": "candidate",
+            "isActive": true,
+            "createdAt": "2025-12-22T12:53:05.793Z",
+            "updatedAt": "2025-12-22T12:53:05.793Z",
+            "__v": 0
+        },
+       etc...
+    ]
+}
+
+//user status update api (only for hr-admin and superadmin)
+
+// :userId is the user ID whose status is to be updated
+ROUTE : put /admin/users/status/:userId,
+{{local}}api/v1/auth/admin/users/status/68ac9967d0d12b78d128cc96 - PUT 
+
+Authorization : hr-admin or superadmin token 
+
+
+Payload: 
+
+{
+    "status" : "approved"
+}
+
+Response: 
+
+{
+    "success": true,
+    "message": "User approved successfully"
+}
+
+//get company-profile
+
+Route: id is companyProfile id
+
+http://localhost:5000/api/v1/employer-dashboard/company-profile/get/6956b70a754792a318b77892 - GET 
+
+Response: 
+
+{
+    "success": true,
+    "profile": {
+        "socialMedia": {
+            "facebook": "https://facebook.com/cisprotech",
+            "twitter": "https://twitter.com/cisprotech",
+            "linkedin": "https://linkedin.com/company/cisprotech",
+            "instagram": "https://instagram.com/cisprotech"
+        },
+        "location": {
+            "address": "No. 12, Tech Park Road",
+            "city": "Coimbatore",
+            "state": "Tamil Nadu",
+            "country": "India",
+            "zipCode": "641001"
+        },
+        "ratings": {
+            "average": 0,
+            "count": 0
+        },
+        "_id": "6956b70a754792a318b77892",
+        "employer": "694906a331477526c0c36815",
+        "createdBy": "695661cb81b115f60d58f4d2",
+        "companyName": "Cispro Technologies",
+        "companyType": "Private",
+        "email": "info@cisprotech.com",
+        "phone": "9876543210",
+        "website": "https://www.cisprotech.com",
+        "establishedSince": "2016-06-15T00:00:00.000Z",
+        "teamSize": "50 - 100",
+        "categories": [
+            "Technology",
+            "Recruitment"
+        ],
+        "industry": "Information Technology",
+        "allowInSearch": true,
+        "isHiring": true,
+        "isVerified": false,
+        "description": "Cispro Technologies is a leading IT solutions and recruitment platform delivering enterprise-grade software and talent solutions.",
+        "profileViews": 0,
+        "status": "approved",
+        "approvedBy": "695661cb81b115f60d58f4d2",
+        "approvedAt": "2026-01-01T18:03:53.997Z",
+        "culture": [
+            "Innovative",
+            "Collaborative",
+            "Work-life balance"
+        ],
+        "revenue": "$1M - $10M",
+        "founders": [
+            {
+                "name": "Sathish Kumar",
+                "role": "Founder & CEO",
+                "linkedin": "https://linkedin.com/in/sathishkumar",
+                "_id": "6956b70a754792a318b77893",
+                "id": "6956b70a754792a318b77893"
+            }
+        ],
+        "branches": [
+            {
+                "city": "Bangalore",
+                "state": "Karnataka",
+                "country": "India",
+                "_id": "6956b70a754792a318b77894",
+                "id": "6956b70a754792a318b77894"
+            },
+            {
+                "city": "Hyderabad",
+                "state": "Telangana",
+                "country": "India",
+                "_id": "6956b70a754792a318b77895",
+                "id": "6956b70a754792a318b77895"
+            }
+        ],
+        "logo": "/uploads/company/c3317f22-cdb6-4289-8ce8-0afe2a5836a5.jpg",
+        "dailyViews": [],
+        "uniqueViewers": [],
+        "id": "6956b70a754792a318b77892"
+    },
+    "activeJobsCount": 0
+}

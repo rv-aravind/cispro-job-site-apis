@@ -101,3 +101,175 @@ javascriptcandidateResumeSchema.add({
 Integration with Job Applications: Add a field resumeId to job application payloads to link to the primary resume.
 
 These payloads should work seamlessly with the provided API. If you encounter issues (e.g., file upload errors, ATS score inaccuracies), share server logs or specific errors, and I'll assist further!
+
+
+
+==============================================
+
+
+Mongo DB:
+
+
+mongosh mongodb+srv://avarvind3765:ILltOeGQJLyh4g64@cluster0.6nmkbq5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+
+//dump the db in windows
+mongodump ^
+ --uri="mongodb+srv://avarvind3765:ILltOeGQJLyh4g64@cluster0.6nmkbq5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" ^
+ --out=jobsite_dev_backup
+
+
+ ===============
+
+
+Mongo restore:
+
+Once you have a **`mongodump` backup**, restoring (importing) it is **simple and safe**.
+
+I’ll explain **exactly what to do**, in the same Windows setup you’re using.
+
+---
+
+## ✅ How to IMPORT (RESTORE) MongoDB backup on Windows
+
+You will use **`mongorestore`**.
+
+---
+
+## 1️⃣ Know what you already have
+
+From your backup command, you now have something like:
+
+```
+C:\Users\aravi\jobsite_dev_backup\
+└── jobsite\
+    ├── users.bson
+    ├── jobs.bson
+    ├── applications.bson
+```
+
+* `jobsite` → database name
+* `.bson` files → collections
+
+---
+
+## 2️⃣ Basic restore (same database name)
+
+If you want to restore **exactly as it was**:
+
+```powershell
+mongorestore --uri="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net" jobsite_dev_backup
+```
+
+✅ This restores:
+
+* Database: `jobsite`
+* All collections + indexes
+
+---
+
+## 3️⃣ Restore into a DIFFERENT database (recommended)
+
+This is safer and **best practice**.
+
+### Example: restore dev backup into `jobsite_dev_restore`
+
+```powershell
+mongorestore `
+  --uri="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net" `
+  --nsFrom="jobsite.*" `
+  --nsTo="jobsite_dev_restore.*" `
+  jobsite_dev_backup
+```
+
+✔ Original data stays untouched
+✔ New DB created
+
+---
+
+## 4️⃣ Restore into LOCAL MongoDB (for testing)
+
+If you want to restore locally on your laptop:
+
+```powershell
+mongorestore --db jobsite_local_test jobsite_dev_backup/jobsite
+```
+
+Then connect:
+
+```powershell
+mongosh
+use jobsite_local_test
+show collections
+```
+
+---
+
+## 5️⃣ Overwrite existing data (use with caution ⚠️)
+
+If collections already exist:
+
+```powershell
+mongorestore --drop --uri="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net" jobsite_dev_backup
+```
+
+⚠️ `--drop` deletes existing collections first.
+
+---
+
+## 6️⃣ Common restore errors & fixes
+
+### ❌ Error: authentication failed
+
+✔ Check username/password
+✔ Make sure DB user has **readWrite** role
+
+---
+
+### ❌ Error: not authorized on admin
+
+✔ Use full cluster URI
+✔ Not just database-specific URI
+
+---
+
+### ❌ Nothing restored
+
+✔ Check folder path
+✔ Folder must contain DB folder inside
+
+---
+
+## 7️⃣ Quick restore checklist
+
+✔ MongoDB Database Tools installed
+✔ Backup folder exists
+✔ Correct URI
+✔ PowerShell restarted
+
+---
+
+## 🧠 Recommended workflow for YOU
+
+| Scenario              | Command               |
+| --------------------- | --------------------- |
+| Restore for reference | `jobsite_dev_restore` |
+| Restore locally       | `jobsite_local_test`  |
+| Emergency rollback    | `--drop` restore      |
+
+---
+
+## ✅ One-line example (most common)
+
+```powershell
+mongorestore --uri="mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net" jobsite_dev_backup
+```
+
+---
+
+If you want, tell me:
+
+* Where do you want to restore? (**same Atlas / new DB / local**)
+* Do you want to **overwrite or keep existing data**?
+
+I’ll give you the **exact command** for your case (copy-paste safe) 💯

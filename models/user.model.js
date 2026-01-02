@@ -26,8 +26,15 @@ const userSchema = new mongoose.Schema({
     },
     role: { 
         type: String, 
-        enum: ['candidate', 'employer', 'admin', 'superadmin'], 
-        default: 'candidate' 
+        enum: ['candidate', 'employer', 'hr-admin', 'superadmin'], 
+        default: 'candidate',
+        required: true
+    },
+    // NEW: Approval status (for candidate and employer roles)
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     isActive: { type: Boolean, default: true },
     createdAt: {

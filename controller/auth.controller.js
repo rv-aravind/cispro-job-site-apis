@@ -6,6 +6,7 @@ import User from "../models/user.model.js";
 import { JWT_SECRET, JWT_EXPIRES_IN, SUPERADMIN_EMAIL, THROTTLING_RETRY_DELAY_BASE } from "../config/env.js";
 import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendSuperadminAlertEmail } from '../utils/mailer.js';
+import { log } from "console";
 
 // Authentication controller object
 const authentication = {};
@@ -22,8 +23,8 @@ authentication.signup = async (req, res, next) => {
 
     try {
         const { name, email, password, role } = req.body;
-        // Only allow candidate or employer roles on signup
-        const safeRole = ['candidate', 'employer'].includes(role) ? role : 'candidate';
+        // Only allow candidate, employer, hr-admin roles on signup
+        const safeRole = ['candidate', 'employer', 'hr-admin'].includes(role) ? role : 'candidate';
 
         // Validate required fields
         if (!name || !email || !password) {
@@ -44,8 +45,13 @@ authentication.signup = async (req, res, next) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+         // Approval logic
+        const status = ['candidate', 'employer'].includes(safeRole)
+          ? 'pending'
+          : 'approved';
+
         // Create new user with optional role (defaults to 'candidate' in schema)
-        const newUser = new User({ name, email, password: hashedPassword, role: safeRole });
+        const newUser = new User({ name, email, password: hashedPassword, role: safeRole, status });
         await newUser.save({ session });
 
         // Generate JWT token
@@ -74,7 +80,8 @@ authentication.signup = async (req, res, next) => {
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
-                role: newUser.role
+                role: newUser.role,
+                status: newUser.status
             }
         });
     } catch (error) {
@@ -111,6 +118,14 @@ authentication.signin = async (req, res, next) => {
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid Password" });
         }
+
+        // Check approval status for candidate and employer roles(for now this we can handle in frontend)
+        // if (user.status !== 'approved') {
+        //   return res.status(403).json({
+        //     message: `Account is ${user.status}. Please wait for approval.`
+        //   });
+        // }
+
 
         if (!user.isActive) {
             return res.status(403).json({ message: "User account is deactivated" });
@@ -293,6 +308,81 @@ authentication.adminResetUserPassword = async (req, res, next) => {
     next(error);
   }
 };
+
+
+/**
+ * Fetch users based on role filters
+ * Accessible only to HR-Admin and Superadmin
+ *
+ * Query Params:
+ * roles=employer
+ * roles=candidate
+ * roles=employer,candidate
+ */
+authentication.getUsersByRole = async (req, res, next) => {
+  try {
+    const { roles } = req.query;
+
+    // Default roles if not passed
+    let roleFilter = ['candidate', 'employer'];
+
+    if (roles) {
+      roleFilter = roles.split(',').map(r => r.trim());
+    }
+
+    // console.log("tessssssssssssss", roles);
+    
+    const users = await User.find(
+      {
+        role: { $in: roleFilter },
+        isActive: true
+      },
+      { password: 0 }
+    ).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users
+    });
+  } catch (error) {
+    console.error('Error in getUsersByRole:', error);
+    next(error);
+  }
+};
+
+/**
+ * Approve or reject a user account
+ * Accessible only to HR-Admin and Superadmin
+ *
+ * Body Params:
+ * status: 'approved' | 'rejected'
+ */
+authentication.updateUserStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    console.log("statussssssssssssss", status);
+    if (!['approved', 'rejected'].includes(status)) {
+      throw new Error('Invalid status');
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `User ${status} successfully`
+    });
+  } catch (error) {
+    console.error('Error in updateUserStatus:', error);
+    next(error);
+  }
+};
+
+
 
 
 /**
