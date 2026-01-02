@@ -353,15 +353,26 @@ employerController.updateCompanyProfile = async (req, res, next) => {
 employerController.getCompanyProfile = async (req, res, next) => {
   try {
     const profileId = req.params.id;
-    const userRole = req.user?.role;
-    
+    const { role, id: loggedInUserId } = req.user;
+
     const profile = await CompanyProfile.findById(profileId);
     if (!profile) {
       throw new NotFoundError('Company profile not found');
     }
 
-    // Restrict visibility
-    if (['candidate', 'employer'].includes(userRole) && profile.status !== 'approved') {
+    const profileOwnerId = profile.employer.toString();
+    const isOwner = loggedInUserId.toString() === profileOwnerId;
+    const isAdmin = ['hr-admin', 'superadmin'].includes(role);
+
+    /**
+     * Visibility rules
+     * -----------------------------
+     * candidate           → approved only
+     * employer (owner)    → always allowed
+     * employer (others)  → approved only
+     * hr-admin/superadmin→ always allowed
+     */
+    if ( profile.status !== 'approved' && !isOwner && !isAdmin ) {
       throw new ForbiddenError('Company profile is not approved yet');
     }
 
@@ -377,6 +388,7 @@ employerController.getCompanyProfile = async (req, res, next) => {
       profile,
       activeJobsCount
     });
+
   } catch (error) {
     next(error);
   }
