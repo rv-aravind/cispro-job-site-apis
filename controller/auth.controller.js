@@ -95,27 +95,29 @@ authentication.signup = async (req, res, next) => {
 };
 
 /**
- * hr-admin or superadmin creates an employer account
+ * hr-admin or superadmin creates an employer or candidate account
  * @param {Object} req - Request object containing name, email, password, and role
  * @param {Object} res - Response object to send back the result
  * @param {Function} next - Next middleware function for error handling
  */
-authentication.createEmployer = async (req, res, next) => {
+authentication.createAdminUser = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   // console.log("hiiiiiiiiiiiiiiiiii", session);
   
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     const creator = req.user; // hr-admin or superadmin
 
-    if (!['hr-admin', 'superadmin'].includes(req.user.role)) {
-      return res.status(400).json({ message: 'Not allowed, Only hr-admin or superadmin can create employer accounts' });
+    if (!['hr-admin', 'superadmin'].includes(creator.role)) {
+      return res.status(403).json({ message: 'Not allowed, Only hr-admin or superadmin can create employer accounts' });
     }
 
     // validations
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: 'All fields are required (name, email, password)' });
+    if (!name || !email || !password || !['employer', 'candidate'].includes(role)) {
+      return res.status(400).json({
+        message: 'name, email, password and valid role (employer/candidate) are required'
+      });
     }
 
     const existing = await User.findOne({ email }).session(session);
@@ -125,21 +127,26 @@ authentication.createEmployer = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // employer is AUTO APPROVED
-    const employer = await User.create([{
+   // Auto approved because admin creates
+    const [user] = await User.create([{
       name,
       email,
       password: hashedPassword,
-      role: 'employer',
+      role,
       status: 'approved',
       createdBy: creator.id
     }], { session });
 
     // AUTO ASSIGN EMPLOYER TO HR-ADMIN
-    if (creator.role === 'hr-admin') {
+   if (creator.role === 'hr-admin') {
+      const updateField =
+        role === 'employer'
+          ? { employerIds: user._id }
+          : { candidateIds: user._id };
+
       await User.updateOne(
         { _id: creator.id },
-        { $addToSet: { employerIds: employer[0]._id } },
+        { $addToSet: updateField },
         { session }
       );
     }
@@ -149,8 +156,8 @@ authentication.createEmployer = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Employer created & assigned successfully',
-      employer: employer[0]
+      message: `${role} created & assigned successfully`,
+      data: user
     });
 
   } catch (err) {
@@ -159,6 +166,71 @@ authentication.createEmployer = async (req, res, next) => {
     next(err);
   }
 };
+
+
+/**
+ * Fetch employers/candidates belonging to hr-admin or all for superadmin
+ */
+authentication.getAssignedUsers = async (req, res, next) => {
+  try {
+    const { roles } = req.query;
+
+    // IMPORTANT: fetch fresh user from DB
+    const loggedInUser = await User.findById(req.user.id)
+      .select('role employerIds candidateIds');
+
+    if (!loggedInUser) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const roleFilter = roles
+      ? roles.split(',').map(r => r.trim())
+      : ['employer', 'candidate'];
+
+    let query = {
+      role: { $in: roleFilter },
+      isActive: true
+    };
+
+    // HR-ADMIN → ONLY ASSIGNED USERS
+    if (loggedInUser.role === 'hr-admin') {
+      const ids = [];
+
+      if (roleFilter.includes('employer')) {
+        ids.push(...(loggedInUser.employerIds || []));
+      }
+      if (roleFilter.includes('candidate')) {
+        ids.push(...(loggedInUser.candidateIds || []));
+      }
+
+      // IMPORTANT guard
+      if (!ids.length) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          data: []
+        });
+      }
+
+      query._id = { $in: ids };
+    }
+
+    // SUPERADMIN → sees all
+    const users = await User.find(query, { password: 0 })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 
 /**

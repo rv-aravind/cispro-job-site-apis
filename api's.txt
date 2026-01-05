@@ -2983,18 +2983,19 @@ Response:
 }
 
 
-//hr-admin or superadmin to create the employer themselves
+//hr-admin or superadmin to create the employer or candidate themselves
 
-localhost:5000/api/v1/auth/admin/users/employer  - POST 
+localhost:5000/api/v1/auth/admin/users  - POST 
 
 Auth : hr-admin or superadmin token
 
 Payload:
 
 {
-    "name" : "test-employer-by-hr",
-    "email" : "test-employer@gmail.com",
-    "password" : "testemployer@123"
+  "name": "John Doe",
+  "email": "john@test.com",
+  "password": "123456",
+  "role": "candidate" 
 }
 
 Failure response: 400
@@ -3004,6 +3005,27 @@ Failure response: 400
 }
 
 Success Response: 201
+
+
+{
+    "success": true,
+    "message": "candidate created & assigned successfully",
+    "data": {
+        "name": "John Doe",
+        "email": "john@test.com",
+        "password": "$2b$10$FmkuulZWVlRevzLBOQzeM.V6XmxGuSAjoOGyA8yp.hPUgvNLFCWcO",
+        "role": "candidate",
+        "status": "approved",
+        "employerIds": [],
+        "candidateIds": [],
+        "createdBy": "695661cb81b115f60d58f4d2",
+        "isActive": true,
+        "_id": "695bf66e5765a5677e573d8d",
+        "createdAt": "2026-01-05T17:35:42.309Z",
+        "updatedAt": "2026-01-05T17:35:42.309Z",
+        "__v": 0
+    }
+}
 
 {
     "success": true,
@@ -3022,4 +3044,79 @@ Success Response: 201
         "updatedAt": "2026-01-05T03:02:08.515Z",
         "__v": 0
     }
+}
+
+//get assigned employers or candidate list for the hr-admin or superadmin
+
+localhost:5000/api/v1/auth/admin/users/assigned?roles=employer,candidate  - GET 
+
+Auth : hr-admin or superadmin token
+
+Payload:
+
+roles:employer,candidate
+
+Response: 
+
+{
+    "success": true,
+    "count": 4,
+    "data": [
+        {
+            "_id": "695bf66e5765a5677e573d8d",
+            "name": "John Doe",
+            "email": "john@test.com",
+            "role": "candidate",
+            "status": "approved",
+            "employerIds": [],
+            "candidateIds": [],
+            "createdBy": "695661cb81b115f60d58f4d2",
+            "isActive": true,
+            "createdAt": "2026-01-05T17:35:42.309Z",
+            "updatedAt": "2026-01-05T17:35:42.309Z",
+            "__v": 0
+        },
+        {
+            "candidateIds": [],
+            "_id": "695bf196c9a70b25e0c4caac",
+            "name": "test-emp",
+            "email": "test-emp@gmail.com",
+            "role": "employer",
+            "status": "approved",
+            "employerIds": [],
+            "createdBy": "695661cb81b115f60d58f4d2",
+            "isActive": true,
+            "createdAt": "2026-01-05T17:15:02.755Z",
+            "updatedAt": "2026-01-05T17:15:02.755Z",
+            "__v": 0
+        },
+        {
+            "candidateIds": [],
+            "_id": "695b628bb4ef469f775c7c7b",
+            "name": "TestingCreateEmployerbyHR-CreatorID",
+            "email": "employerbyhr@gmail.com",
+            "role": "employer",
+            "status": "approved",
+            "employerIds": [],
+            "createdBy": "695661cb81b115f60d58f4d2",
+            "isActive": true,
+            "createdAt": "2026-01-05T07:04:43.625Z",
+            "updatedAt": "2026-01-05T07:04:43.625Z",
+            "__v": 0
+        },
+        {
+            "candidateIds": [],
+            "_id": "695b29b006d25e96967fc4f4",
+            "name": "test-employer-by-hr",
+            "email": "test-employer@gmail.com",
+            "role": "employer",
+            "status": "approved",
+            "employerIds": [],
+            "createdBy": "695661cb81b115f60d58f4d2",
+            "isActive": true,
+            "createdAt": "2026-01-05T03:02:08.515Z",
+            "updatedAt": "2026-01-05T03:02:08.515Z",
+            "__v": 0
+        }
+    ]
 }

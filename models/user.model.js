@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
           ref: 'User' 
         }
     ],
+    candidateIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
