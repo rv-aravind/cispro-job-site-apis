@@ -58,31 +58,31 @@ employerRouter.get('/company/:id/jobs', employerController.getActiveJobsByEmploy
 // Get applicants for a specific job post
 
 // Get all applicants for a specific job with filters
-employerRouter.get('/applicants/:jobId', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.getApplicantsByJob);
+employerRouter.get('/applicants/:jobId', authenticate, authorizeEmployerLike(), employerApplicantsController.getApplicantsByJob);
 
 // Get all applicants across all jobs by employer
-employerRouter.get('/applicants', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.getAllApplicants);
+employerRouter.get('/applicants', authenticate, authorizeEmployerLike(), employerApplicantsController.getAllApplicants);
 
 // Update applicant status (approve/reject)
-employerRouter.put('/applicants/:applicationId/status', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.updateApplicantStatus);
+employerRouter.put('/applicants/:applicationId/status', authenticate, authorizeEmployerLike(), employerApplicantsController.updateApplicantStatus);
 
 // Delete an application
-employerRouter.delete('/applicants/delete/:applicationId', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.deleteApplicant);
+employerRouter.delete('/applicants/delete/:applicationId', authenticate, authorizeEmployerLike(), employerApplicantsController.deleteApplicant);
 
 // View applicant details
-employerRouter.get('/applicants/get/:applicationId', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.viewApplicant);
+employerRouter.get('/applicants/get/:applicationId', authenticate, authorizeEmployerLike(), employerApplicantsController.viewApplicant);
 
 // Bulk update applicant statuses
-employerRouter.put('/applicants/bulk-status', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.bulkUpdateStatus);
+employerRouter.put('/applicants/bulk-status', authenticate, authorizeEmployerLike(), employerApplicantsController.bulkUpdateStatus);
 
 // Shortlist an applicant
-employerRouter.put('/applicants/:applicationId/shortlist', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.shortlistApplicant);
+employerRouter.put('/applicants/:applicationId/shortlist', authenticate, authorizeEmployerLike(), employerApplicantsController.shortlistApplicant);
 
 // Unshortlist an applicant
-employerRouter.put('/applicants/:applicationId/unshortlist', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.unshortlistApplicant);
+employerRouter.put('/applicants/:applicationId/unshortlist', authenticate, authorizeEmployerLike(), employerApplicantsController.unshortlistApplicant);
 
 // Get shortlisted resumes
-employerRouter.get('/shortlisted-resumes', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerApplicantsController.getShortlistedResumes);
+employerRouter.get('/shortlisted-resumes', authenticate, authorizeEmployerLike(), employerApplicantsController.getShortlistedResumes);
 
 // candidate save for future use
 // Save candidate profile

@@ -2981,3 +2981,45 @@ Response:
     "success": true,
     "message": "Job post deleted successfully"
 }
+
+
+//hr-admin or superadmin to create the employer themselves
+
+localhost:5000/api/v1/auth/admin/users/employer  - POST 
+
+Auth : hr-admin or superadmin token
+
+Payload:
+
+{
+    "name" : "test-employer-by-hr",
+    "email" : "test-employer@gmail.com",
+    "password" : "testemployer@123"
+}
+
+Failure response: 400
+
+{
+    "message": "All fields are required (name, email, password)"
+}
+
+Success Response: 201
+
+{
+    "success": true,
+    "message": "Employer created & assigned successfully",
+    "employer": {
+        "name": "test-employer-by-hr",
+        "email": "test-employer@gmail.com",
+        "password": "$2b$10$fIkxdjycYitih8iMEoEhseaGMIddyVkYvXVhg.YG/EM6QtQB279mO",
+        "role": "employer",
+        "status": "approved",
+        "employerIds": [],
+        "createdBy": "695661cb81b115f60d58f4d2",
+        "isActive": true,
+        "_id": "695b29b006d25e96967fc4f4",
+        "createdAt": "2026-01-05T03:02:08.515Z",
+        "updatedAt": "2026-01-05T03:02:08.515Z",
+        "__v": 0
+    }
+}

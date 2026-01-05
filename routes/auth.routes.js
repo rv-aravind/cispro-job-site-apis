@@ -35,6 +35,9 @@ authRouter.get('/users',authenticate, authorize(['hr-admin', 'superadmin']), aut
 // :id is the user ID whose status is to be updated
 authRouter.put('/admin/users/status/:id', authenticate, authorize(['hr-admin', 'superadmin']), authentication.updateUserStatus);
 
+// Create employer user (hr-admin and superadmin only)
+authRouter.post('/admin/users/employer', authenticate, authorize(['hr-admin', 'superadmin']), authentication.createEmployer);
+
 
 
 

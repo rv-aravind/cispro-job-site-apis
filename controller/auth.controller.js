@@ -6,6 +6,8 @@ import User from "../models/user.model.js";
 import { JWT_SECRET, JWT_EXPIRES_IN, SUPERADMIN_EMAIL, THROTTLING_RETRY_DELAY_BASE } from "../config/env.js";
 import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendSuperadminAlertEmail } from '../utils/mailer.js';
+import { BadRequestError, ForbiddenError,NotFoundError} from '../utils/errors.js';
+
 import { log } from "console";
 
 // Authentication controller object
@@ -91,6 +93,73 @@ authentication.signup = async (req, res, next) => {
         next(error); // Pass to error middleware
     }
 };
+
+/**
+ * hr-admin or superadmin creates an employer account
+ * @param {Object} req - Request object containing name, email, password, and role
+ * @param {Object} res - Response object to send back the result
+ * @param {Function} next - Next middleware function for error handling
+ */
+authentication.createEmployer = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  // console.log("hiiiiiiiiiiiiiiiiii", session);
+  
+  try {
+    const { name, email, password } = req.body;
+    const creator = req.user; // hr-admin or superadmin
+
+    if (!['hr-admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(400).json({ message: 'Not allowed, Only hr-admin or superadmin can create employer accounts' });
+    }
+
+    // validations
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: 'All fields are required (name, email, password)' });
+    }
+
+    const existing = await User.findOne({ email }).session(session);
+    if (existing) {
+        return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // employer is AUTO APPROVED
+    const employer = await User.create([{
+      name,
+      email,
+      password: hashedPassword,
+      role: 'employer',
+      status: 'approved',
+      createdBy: creator.id
+    }], { session });
+
+    // AUTO ASSIGN EMPLOYER TO HR-ADMIN
+    if (creator.role === 'hr-admin') {
+      await User.updateOne(
+        { _id: creator.id },
+        { $addToSet: { employerIds: employer[0]._id } },
+        { session }
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      message: 'Employer created & assigned successfully',
+      employer: employer[0]
+    });
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    next(err);
+  }
+};
+
 
 /**
  * Authenticates a user and returns a JWT token

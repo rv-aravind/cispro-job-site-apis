@@ -36,6 +36,17 @@ const userSchema = new mongoose.Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
     },
+    // Employer IDs (for HR-Admins to manage employers)
+    employerIds: [
+        { 
+          type: mongoose.Schema.Types.ObjectId, 
+          ref: 'User' 
+        }
+    ],
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     isActive: { type: Boolean, default: true },
     createdAt: {
         type: Date,
