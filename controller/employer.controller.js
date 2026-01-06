@@ -683,6 +683,53 @@ employerController.getActiveJobsByEmployer = async (req, res, next) => {
 };
 
 
+/**
+ * Fetch company profiles created by hr-admin or all for superadmin
+ */
+employerController.getAssignedCompanyProfiles = async (req, res, next) => {
+  try {
+    const loggedInUser = await User.findById(req.user.id)
+      .select('role employerIds');
+
+    if (!loggedInUser) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    let query = {};
+
+    /**
+     * HR-ADMIN rules
+     * -------------------------
+     * 1. Profiles created by hr-admin
+     * 2. Profiles belonging to assigned employers
+     */
+    if (loggedInUser.role === 'hr-admin') {
+      query = {
+        $or: [
+          { createdBy: loggedInUser._id },
+          { employer: { $in: loggedInUser.employerIds || [] } }
+        ]
+      };
+    }
+
+    // SUPERADMIN → sees all
+    const profiles = await CompanyProfile.find(query)
+      .select('-__v')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: profiles.length,
+      data: profiles
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 // employerDashboardController.getSummary = async (req, res, next) => {
 //   try {
 //     const employerId = req.user.id;

@@ -201,6 +201,9 @@ companyProfileSchema.index({ 'dailyViews.date': 1 });
 // companyProfileSchema.index({ employer: 1 }, { unique: true });  // Uncomment if each employer can have only one profile
 companyProfileSchema.index({ companyName: 'text', industry: 'text' });
 companyProfileSchema.index({ 'location.city': 1, 'location.country': 1 });
+companyProfileSchema.index({ createdBy: 1 });
+// companyProfileSchema.index({ employer: 1 });
+
 
 const CompanyProfile = mongoose.model('CompanyProfile', companyProfileSchema);
 

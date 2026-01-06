@@ -190,6 +190,129 @@ jobsController.getJobPosts = async (req, res, next) => {
   }
 };
 
+
+/**
+ * Fetches job posts created by employers themselves.
+ *
+ * Access Rules:
+ * ----------------------------------------------------
+ * employer      → can see ONLY their own job posts
+ * hr-admin      → can see ALL employer-created job posts
+ * superadmin    → can see ALL employer-created job posts
+ *
+ * Employer-created job condition:
+ * ----------------------------------------------------
+ * postedBy === employer
+ *
+ */
+jobsController.getEmployerJobPosts = async (req, res, next) => {
+  try {
+    const { role, id: userId } = req.user;
+
+    // Base MongoDB query
+    let query = {};
+
+    /**
+     * EMPLOYER
+     * ------------------------------------------------
+     * Employers should see ONLY the jobs
+     * created under their own employer account.
+     */
+    if (role === 'employer') {
+      query.employer = userId;
+      query.postedBy = userId; // employer created it themselves
+    }
+
+    /**
+     * HR-ADMIN / SUPERADMIN
+     * ------------------------------------------------
+     * Admins can view ALL employer-created jobs.
+     * We identify employer-created jobs by checking:
+     * postedBy === employer
+     */
+    if (['hr-admin', 'superadmin'].includes(role)) {
+      query.$expr = { $eq: ['$postedBy', '$employer'] };
+    }
+
+    // Fetch jobs with minimal required fields
+    const jobPosts = await jobs.find(query)
+      .populate('companyProfile', 'companyName logo')
+      .populate('employer', 'name email')
+      .select(
+        'title status employer companyProfile postedBy createdAt applicationDeadline'
+      )
+      .sort({ createdAt: -1 });
+
+    // Success response
+    return res.status(200).json({
+      success: true,
+      count: jobPosts.length,
+      jobPosts
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/**
+ * Fetches job posts created by HR-Admins or Superadmins
+ * on behalf of employers.
+ *
+ * Access Rules:
+ * ----------------------------------------------------
+ * hr-admin      → sees ONLY jobs posted by themselves
+ * superadmin    → sees ALL admin-created job posts
+ *
+ * Admin-created job condition:
+ * ----------------------------------------------------
+ * postedBy !== employer
+ */
+jobsController.getAdminPostedJobs = async (req, res, next) => {
+  try {
+    const { role, id: userId } = req.user;
+
+    // Base query for admin-created jobs
+    let query = {
+      $expr: { $ne: ['$postedBy', '$employer'] }
+    };
+
+    /**
+     * HR-ADMIN
+     * ------------------------------------------------
+     * HR-Admin can only see jobs posted by themselves.
+     */
+    if (role === 'hr-admin') {
+      query.postedBy = userId;
+    }
+
+    /**
+     * SUPERADMIN
+     * ------------------------------------------------
+     * Superadmin can see ALL admin-created jobs.
+     * No additional filters required.
+     */
+
+    const jobPosts = await jobs.find(query)
+      .populate('companyProfile', 'companyName logo')
+      .populate('employer', 'name email')
+      .populate('postedBy', 'name role')
+      .select(
+        'title status employer companyProfile postedBy createdAt applicationDeadline'
+      )
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: jobPosts.length,
+      jobPosts
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 /**
  * Fetches a single job post for editing
  * @param {Object} req - Request object containing job post ID

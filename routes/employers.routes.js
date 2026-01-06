@@ -33,6 +33,9 @@ employerRouter.put( '/company-profile/approve/:id', authenticate, authorize(['hr
 // Delete company profile
 employerRouter.delete('/company-profile/delete/:id',authenticate,authorizeEmployerLike(),employerController.deleteCompanyProfile);
 
+// hr-admin / superadmin only
+employerRouter.get('/company-profile/assigned', authenticate, authorize(['hr-admin', 'superadmin']), employerController.getAssignedCompanyProfiles);
+
 
 // post job
 
@@ -53,6 +56,12 @@ employerRouter.delete('/jobs/delete/:id',authenticate, authorizeEmployerLike(),j
 
 // Get active jobs posted by a specific employer (public)
 employerRouter.get('/company/:id/jobs', employerController.getActiveJobsByEmployer);
+
+// Get job posts created by employers themselves
+employerRouter.get('/jobs/by-employers', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), jobsController.getEmployerJobPosts);
+
+// Get job posts created by HR-Admins or Superadmins
+employerRouter.get('/jobs/by-admins', authenticate, authorize(['hr-admin', 'superadmin']), jobsController.getAdminPostedJobs);
 
 
 // Get applicants for a specific job post

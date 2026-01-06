@@ -28,6 +28,9 @@ candidateRouter.get('/profile/my-profiles', authenticate, authorize(['candidate'
 // Delete candidate profile
 candidateRouter.delete('/profile/delete/:id', authenticate, authorize(['candidate', 'superadmin']), candidateController.deleteCandidateProfile);
 
+candidateRouter.get( '/candidate-profile/assigned', authenticate, authorize(['hr-admin', 'superadmin']), candidateController.getAssignedCandidateProfiles);
+
+
 // View all job posts (public for candidates)
 candidateRouter.get('/jobs', candidateController.getAllJobPosts);
 
