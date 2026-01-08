@@ -331,6 +331,182 @@ employerApplicantsController.getAllApplicants = async (req, res, next) => {
   }
 };
 
+/**
+ * Get applicants for jobs belonging to HR-Admin assigned employers
+ *
+ * @route   GET /api/hr-admin/applicants
+ * @access  Private (HR-Admin, Superadmin)
+ */
+employerApplicantsController.getHrAdminEmployersApplicants = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const { status, dateRange, page = 1, limit = 10, search } = req.query;
+
+    // Resolve employer scope
+    let employerFilter = {};
+
+    if (user.role === 'hr-admin') {
+      if (!user.employerIds || !user.employerIds.length) {
+        return res.status(200).json({
+          success: true,
+          applicants: [],
+          pagination: {
+            currentPage: Number(page),
+            totalPages: 0,
+            total: 0,
+            limit: Number(limit),
+          },
+          statusCounts: {
+            Total: 0,
+            Pending: 0,
+            Reviewed: 0,
+            Accepted: 0,
+            Rejected: 0,
+          },
+        });
+      }
+
+      employerFilter = { employer: { $in: user.employerIds } };
+    }
+
+    //Fetch jobs under those employers
+    const jobs = await JobPost.find(employerFilter).select('_id');
+
+    if (!jobs.length) {
+      return res.status(200).json({
+        success: true,
+        applicants: [],
+        pagination: {
+          currentPage: Number(page),
+          totalPages: 0,
+          total: 0,
+          limit: Number(limit),
+        },
+        statusCounts: {
+          Total: 0,
+          Pending: 0,
+          Reviewed: 0,
+          Accepted: 0,
+          Rejected: 0,
+        },
+      });
+    }
+
+    // Build application match query
+    const matchQuery = {
+      jobPost: { $in: jobs.map(j => j._id) },
+    };
+
+    if (status && status !== 'All') {
+      matchQuery.status = status;
+    }
+
+    if (dateRange && dateRange !== 'All') {
+      const months = {
+        'Last 12 Months': 12,
+        'Last 16 Months': 16,
+        'Last 24 Months': 24,
+        'Last 5 year': 60,
+      };
+      const cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - (months[dateRange] || 12));
+      matchQuery.createdAt = { $gte: cutoffDate };
+    }
+
+    // Aggregation pipeline
+    const pipeline = [
+      { $match: matchQuery },
+
+      { $lookup: { from: 'users', localField: 'candidate', foreignField: '_id', as: 'candidate' } },
+      { $unwind: { path: '$candidate', preserveNullAndEmptyArrays: true } },
+
+      { $lookup: { from: 'candidateprofiles', localField: 'candidateProfile', foreignField: '_id', as: 'candidateProfile' } },
+      { $unwind: { path: '$candidateProfile', preserveNullAndEmptyArrays: true } },
+
+      { $lookup: { from: 'jobposts', localField: 'jobPost', foreignField: '_id', as: 'jobPost' } },
+      { $unwind: { path: '$jobPost', preserveNullAndEmptyArrays: true } },
+    ];
+
+    // Search
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'candidate.name': regex },
+            { 'candidate.email': regex },
+            { 'candidateProfile.fullName': regex },
+            { 'candidateProfile.email': regex },
+            { 'candidateProfile.jobTitle': regex },
+          ],
+        },
+      });
+    }
+
+    // Pagination + counts
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [
+            { $skip: (page - 1) * limit },
+            { $limit: Number(limit) },
+          ],
+          totalCount: [{ $count: 'count' }],
+          statusCounts: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+        },
+      }
+    );
+
+    const [result] = await Application.aggregate(pipeline);
+
+    const applicants = result.data || [];
+    const total = result.totalCount?.[0]?.count || 0;
+
+    // Status tab counts
+    const statusCounts = {
+      Total: total,
+      Pending: result.statusCounts.find(s => s._id === 'Pending')?.count || 0,
+      Reviewed: result.statusCounts.find(s => s._id === 'Reviewed')?.count || 0,
+      Accepted: result.statusCounts.find(s => s._id === 'Accepted')?.count || 0,
+      Rejected: result.statusCounts.find(s => s._id === 'Rejected')?.count || 0,
+    };
+
+    //  Format response
+    const formattedApplicants = applicants.map(app => ({
+      id: app.candidate?._id,
+      name: app.candidateProfile?.fullName || app.candidate?.name || 'N/A',
+      designation: app.candidateProfile?.jobTitle || 'N/A',
+      location: app.candidateProfile?.location?.city || 'N/A',
+      expectedSalary: app.candidateProfile?.expectedSalary || 'N/A',
+      tags: app.candidateProfile?.categories || [],
+      avatar: app.candidateProfile?.profilePhoto || app.candidate?.profilePhoto || '/default-avatar.jpg',
+      status: app.status,
+      shortlisted: app.shortlisted,
+      appliedAt: app.createdAt,
+      resume: app.resume,
+      applicationId: app._id,
+      jobTitle: app.jobPost?.title || 'N/A',
+      employerId: app.jobPost?.employer,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      applicants: formattedApplicants,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / limit),
+        total,
+        limit: Number(limit),
+      },
+      statusCounts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 /**
  * Update applicant status (approve/reject).
@@ -465,11 +641,18 @@ employerApplicantsController.bulkUpdateStatus = async (req, res, next) => {
     // Find applications belonging to the employer
     const applications = await Application.find({
       _id: { $in: applicationIds },
-      'jobPost.employer': employerId,
-    });
+      // 'jobPost.employer': employerId,
+    }).populate('jobPost');
 
-    if (applications.length !== applicationIds.length) {
-      throw new ForbiddenError('Some applications do not belong to you');
+    // if (applications.length !== applicationIds.length) {
+    //   throw new ForbiddenError('Some applications do not belong to you');
+    // }
+
+     // Permission check per application
+    for (const app of applications) {
+      if (!canManageJob(app.jobPost, req.user)) {
+        throw new ForbiddenError('Permission denied for one or more applications');
+      }
     }
 
     // Update statuses
@@ -700,6 +883,155 @@ employerApplicantsController.getShortlistedResumes = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+/**
+ * Get employer-wise applicant summary for HR-Admin / Superadmin
+ *
+ * What this API does:
+ * ----------------------------------------------------
+ * - Groups applicants by employer
+ * - Counts total jobs per employer
+ * - Counts total applicants
+ * - Gives status-wise applicant breakdown
+ *
+ * @route   GET /api/hr-admin/employers/applicants-summary
+ * @access  Private (HR-Admin, Superadmin)
+ */
+employerApplicantsController.getEmployerApplicantsSummary = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    // Build employer filter based on role
+    let employerMatch = {};
+
+    if (user.role === 'hr-admin') {
+      if (!user.employerIds || !user.employerIds.length) {
+        return res.status(200).json({
+          success: true,
+          data: [],
+        });
+      }
+
+      employerMatch._id = { $in: user.employerIds };
+    }
+
+    // Fetch employers
+    const employers = await User.find({
+      role: 'employer',
+      ...employerMatch,
+    }).select('_id name companyName email');
+
+    if (!employers.length) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const employerIds = employers.map(e => e._id);
+
+    // Aggregate applicants grouped by employer
+    const summary = await Application.aggregate([
+      // Join job posts
+      {
+        $lookup: {
+          from: 'jobposts',
+          localField: 'jobPost',
+          foreignField: '_id',
+          as: 'jobPost',
+        },
+      },
+      { $unwind: '$jobPost' },
+
+      // Match only employers we care about
+      {
+        $match: {
+          'jobPost.employer': { $in: employerIds },
+        },
+      },
+
+      // Group by employer + status
+      {
+        $group: {
+          _id: {
+            employer: '$jobPost.employer',
+            status: '$status',
+          },
+          count: { $sum: 1 },
+        },
+      },
+
+      // Group again by employer
+      {
+        $group: {
+          _id: '$_id.employer',
+          totalApplicants: { $sum: '$count' },
+          statusCounts: {
+            $push: {
+              status: '$_id.status',
+              count: '$count',
+            },
+          },
+        },
+      },
+    ]);
+
+    // Get job counts per employer
+    const jobCounts = await JobPost.aggregate([
+      { $match: { employer: { $in: employerIds } } },
+      {
+        $group: {
+          _id: '$employer',
+          totalJobs: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const jobCountMap = {};
+    jobCounts.forEach(j => {
+      jobCountMap[j._id.toString()] = j.totalJobs;
+    });
+
+    // Format response
+    const employerMap = {};
+    employers.forEach(e => {
+      employerMap[e._id.toString()] = e;
+    });
+
+    const formatted = summary.map(item => {
+      const statusObj = {
+        Pending: 0,
+        Reviewed: 0,
+        Accepted: 0,
+        Rejected: 0,
+      };
+
+      item.statusCounts.forEach(s => {
+        statusObj[s.status] = s.count;
+      });
+
+      return {
+        employerId: item._id,
+        employerName: employerMap[item._id.toString()]?.companyName ||
+                      employerMap[item._id.toString()]?.name ||
+                      'N/A',
+        totalJobs: jobCountMap[item._id.toString()] || 0,
+        totalApplicants: item.totalApplicants,
+        statusCounts: statusObj,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: formatted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 
 export default employerApplicantsController;

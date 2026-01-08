@@ -476,7 +476,8 @@ authentication.getUsersByRole = async (req, res, next) => {
     const users = await User.find(
       {
         role: { $in: roleFilter },
-        isActive: true
+        isActive: true,
+        isDeleted: false
       },
       { password: 0 }
     ).sort({ createdAt: -1 });
@@ -502,7 +503,7 @@ authentication.getUsersByRole = async (req, res, next) => {
 authentication.updateUserStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-    console.log("statussssssssssssss", status);
+    // console.log("statussssssssssssss", status);
     if (!['approved', 'rejected'].includes(status)) {
       throw new Error('Invalid status');
     }
@@ -536,5 +537,69 @@ authentication.signout = (req, res) => {
     // Future enhancement: Implement server-side token blacklisting if needed
     return res.status(200).json({ success: true, message: "User signed out successfully" });
 };
+
+/**
+ * Soft delete a user profile
+ *
+ * Who can delete:
+ * - Candidate / Employer → their own profile
+ * - HR-Admin / Superadmin → any candidate or employer
+ *
+ * @route DELETE /api/v1/auth/users/:id
+ * @access Private
+ */
+authentication.deleteUserProfile = async (req, res, next) => {
+  try {
+    const loggedInUser = req.user;
+    const targetUserId = req.params.id;
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Permission checks
+    const isSelfDelete =
+      loggedInUser.id.toString() === targetUserId.toString();
+
+    const isAdmin =
+      ['hr-admin', 'superadmin'].includes(loggedInUser.role);
+
+    // Candidates & employers can delete ONLY themselves
+    if (!isSelfDelete && !isAdmin) {
+      return res.status(403).json({
+        message: 'You are not allowed to delete this profile'
+      });
+    }
+
+    // HR-Admin should delete only candidate/employer
+    if (
+      loggedInUser.role === 'hr-admin' &&
+      !['candidate', 'employer'].includes(targetUser.role)
+    ) {
+      return res.status(403).json({
+        message: 'HR-Admin cannot delete admin accounts'
+      });
+    }
+
+    // Soft delete 
+    targetUser.isActive = false;
+    targetUser.isDeleted = true;
+    targetUser.deletedAt = new Date();
+    targetUser.deletedBy = loggedInUser.id;
+
+    await targetUser.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'User profile deleted successfully (soft delete)'
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 export default authentication;

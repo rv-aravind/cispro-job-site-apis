@@ -10,7 +10,20 @@ export const isEmployerLike = (role) => EMPLOYER_LIKE_ROLES.includes(role);
 export const isPlatformAdmin = (role) => PLATFORM_ADMIN_ROLES.includes(role);
 
 
-// permission checkers
+/**
+ * Checks whether a user can manage a given job post
+ * (view applicants, shortlist, approve, reject, delete, etc.)
+ *
+ * Permission Rules:
+ * ------------------------------------------------
+ * superadmin → can manage all jobs
+ * employer   → can manage jobs they own
+ * hr-admin   → can manage jobs of assigned employers
+ *
+ * @param {Object} jobPost - JobPost document
+ * @param {Object} user - Logged-in user
+ * @returns {Boolean}
+ */
 export const canManageJob = (jobPost, user) => {
 
   if (!jobPost || !user) return false;

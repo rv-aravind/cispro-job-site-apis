@@ -41,6 +41,13 @@ authRouter.post('/admin/users', authenticate, authorize(['hr-admin', 'superadmin
 // Get assigned users for hr-admin (hr-admin and superadmin only)
 authRouter.get('/admin/users/assigned', authenticate, authorize(['hr-admin', 'superadmin']), authentication.getAssignedUsers);
 
+/**
+ * Soft delete user profile
+ * - Self delete (candidate / employer)
+ * - Admin delete (hr-admin / superadmin)
+ */
+authRouter.delete('/users/:id', authenticate,authorize(['candidate', 'employer', 'hr-admin', 'superadmin']),authentication.deleteUserProfile);
+
 
 
 

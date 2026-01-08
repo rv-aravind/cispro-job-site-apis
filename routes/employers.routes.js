@@ -58,7 +58,7 @@ employerRouter.delete('/jobs/delete/:id',authenticate, authorizeEmployerLike(),j
 employerRouter.get('/company/:id/jobs', employerController.getActiveJobsByEmployer);
 
 // Get job posts created by employers themselves
-employerRouter.get('/jobs/by-employers', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), jobsController.getEmployerJobPosts);
+employerRouter.get('/jobs/by-employers', authenticate,  authorizeEmployerLike(), jobsController.getEmployerJobPosts);
 
 // Get job posts created by HR-Admins or Superadmins
 employerRouter.get('/jobs/by-admins', authenticate, authorize(['hr-admin', 'superadmin']), jobsController.getAdminPostedJobs);
@@ -71,6 +71,12 @@ employerRouter.get('/applicants/:jobId', authenticate, authorizeEmployerLike(), 
 
 // Get all applicants across all jobs by employer
 employerRouter.get('/applicants', authenticate, authorizeEmployerLike(), employerApplicantsController.getAllApplicants);
+
+/**
+ * List applicants for HR-Admin assigned employers
+ */
+employerRouter.get('/hr-admin/applicants', authenticate, authorize(['hr-admin', 'superadmin']), employerApplicantsController.getHrAdminEmployersApplicants);
+
 
 // Update applicant status (approve/reject)
 employerRouter.put('/applicants/:applicationId/status', authenticate, authorizeEmployerLike(), employerApplicantsController.updateApplicantStatus);
@@ -117,7 +123,7 @@ employerRouter.delete('/resume-alerts/delete/:id', authenticate, authorize(['emp
 employerRouter.get('/resume-alerts/get-all', authenticate, authorize(['employer']), resumeAlertController.listResumeAlerts);
 
 // Get matches for specific alert
-employerRouter.get('/resume-alerts/:id/matches', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), resumeAlertController.getAlertMatches);
+employerRouter.get('/resume-alerts/:id/matches', authenticate, authorizeEmployerLike(), resumeAlertController.getAlertMatches);
 
 
 // Employer dashboard routes
@@ -139,6 +145,10 @@ employerRouter.get('/application-trends', authenticate, authorize(['employer', '
 // get top applicants
 employerRouter.get('/job-status-distribution', authenticate, authorize(['employer', 'hr-admin', 'superadmin']), employerDashboardController.getJobStatusDistribution);
 
-
+/**
+ * Employer-wise applicant summary
+ * (HR-Admin / Superadmin only)
+ */
+employerRouter.get('/hr-admin/employers/applicants-summary', authenticate, authorize(['hr-admin', 'superadmin']), employerApplicantsController.getEmployerApplicantsSummary);
 
 export default employerRouter;
